@@ -40,16 +40,20 @@ body {
   width: min(100vw, 100dvh * 853 / 1844, 460px);
   height: auto;
   flex: none;
-  overflow: hidden;              /* 화면 밖으로 튀어나온 부분(루나 등) 클리핑 */
-  background: #14101f;
-  box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
+  /* 배경이 뷰포트를 꽉 채우므로, 틀 경계에서 자르지 않고 루나가 배경 위로 이어지게 함.
+     화면 밖으로 나가는 부분은 body(overflow:hidden)가 잘라줌. */
+  overflow: visible;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.4);
 }
 
+/* 배경만 뷰포트 전체를 덮어 꽉 채움 (좁은 .screen 틀을 벗어나 살짝 확대되어 들어감).
+   .screen 이 딱 맞는 폰에선 뷰포트=틀 이라 그대로, 넓적한 폰에선 배경이 여백까지 채움. */
 .bg {
-  position: absolute;
+  position: fixed;
   inset: 0;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
   object-fit: cover;
   z-index: 0;
   user-select: none;
