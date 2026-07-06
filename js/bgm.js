@@ -5,12 +5,26 @@
   "use strict";
 
   const SRC = "audio/main_Moonlit Sky Delivery.mp3";
+  const TARGET_VOL = 0.5;
   const audio = new Audio(encodeURI(SRC)); // 공백 등 URL 인코딩
   audio.loop = true;
-  audio.volume = 0.5;
+  audio.volume = 0;                        // 0에서 시작 → 재생되면 부드럽게 페이드인
   audio.preload = "auto";
 
-  const GESTURES = ["pointerdown", "touchstart", "keydown"];
+  // 스플래시 분위기에 맞춰 볼륨을 서서히 올림
+  function fadeInVolume(ms) {
+    const steps = 40, stepMs = ms / steps;
+    let i = 0;
+    const id = setInterval(() => {
+      i++;
+      audio.volume = Math.min(TARGET_VOL, (TARGET_VOL * i) / steps);
+      if (i >= steps) clearInterval(id);
+    }, stepMs);
+  }
+
+  // "떼는" 계열(pointerup/touchend/click)이 오디오 재생 허가(user activation)를
+  // 확실히 부여한다. pointerdown/touchstart 만으로는 재생이 막히는 브라우저가 있어 함께 등록.
+  const GESTURES = ["pointerup", "touchend", "click", "keydown", "pointerdown", "touchstart"];
   let started = false;
 
   function removeGestureListeners() {
@@ -24,6 +38,7 @@
       p.then(() => {
         started = true;
         removeGestureListeners();
+        fadeInVolume(2500);
         console.log("[bgm] 재생 시작");
       }).catch(() => {
         // 자동재생 차단 — 다음 사용자 제스처를 기다린다 (리스너 유지)
@@ -31,6 +46,7 @@
     } else {
       started = true;
       removeGestureListeners();
+      fadeInVolume(2500);
     }
   }
 

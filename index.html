@@ -10,7 +10,7 @@
 <body>
   <div class="screen" id="screen">
     <!-- 배경 -->
-    <img class="bg" src="image/background_clean.png" alt="배경" />
+    <img class="bg" src="image/background_clean_generated_ext.png" alt="배경" />
 
     <!-- 지평선 태양빛 (배경 노을 위 은은한 발광) -->
     <div class="sun-glow" aria-hidden="true"></div>
@@ -47,11 +47,15 @@
     <button class="start-btn" data-name="게임 시작">
       <img src="image/button_game_stat.png" alt="게임 시작" />
     </button>
+
+    <!-- 인트로 안내: 터치하면 BGM 시작 + 메뉴 등장 -->
+    <p class="touch-hint">터치해주세요</p>
   </div>
 
   <script src="script.js"></script>
   <script src="js/luna-mesh.js"></script>
   <script src="js/nero-mesh.js"></script>
   <script src="js/bgm.js"></script>
+  <script src="js/splash.js"></script>
 </body>
 </html>

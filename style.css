@@ -159,6 +159,12 @@ button img {
 .settings-btn { top: 2.27%; }    /* SVG: x1294.5 y71 */
 .mail-btn { top: 9.20%; }        /* SVG: x1294.5 y288 */
 
+@media (max-width: 430px) {
+  .icon-btn {
+    left: 90%;
+  }
+}
+
 .mail-btn .badge {
   position: absolute;
   top: 6%;
@@ -297,3 +303,63 @@ button img {
   0%, 100% { transform: translateY(0); }
   50%      { transform: translateY(-1.8%); }
 }
+
+/* =========================================================
+   인트로(스플래시) — background_clean 위에서 로고·부제가 중앙에 등장,
+   "터치해주세요" 안내. 터치(body.started)하면 BGM 시작 +
+   로고·부제가 메인 위치로 이동 + 열기구·아이콘·루나·네로·버튼이 순차 등장.
+   (BGM 은 bgm.js 가 첫 제스처에 재생)
+   ========================================================= */
+
+/* 배경 부드럽게 fade in (검은 → 씬) */
+.bg { animation: introBg 0.9s ease both; }
+@keyframes introBg { from { opacity: 0; } to { opacity: 1; } }
+@keyframes introFade { to { opacity: 1; } }
+
+/* 로고·부제: opacity 는 등장 애니메이션, 위치/스케일은 클래스+transition 으로 제어
+   (애니메이션 fill 이 transform 을 덮어써 이동을 막지 않도록 분리) */
+.logo {
+  opacity: 0;
+  animation: introFade 0.9s ease 0.4s forwards;
+  transition: top 1.2s cubic-bezier(.5, 0, .2, 1), transform 1.2s cubic-bezier(.5, 0, .2, 1);
+}
+.subtitle {
+  opacity: 0;
+  animation: introFade 0.9s ease 0.7s forwards;
+  transition: top 1.2s cubic-bezier(.5, 0, .2, 1);
+}
+/* 터치 전: 화면 중앙 (터치하면 .logo/.subtitle 기본 top 으로 복귀하며 글라이드) */
+body:not(.started) .logo      { top: 30%; transform: scale(1.12); }
+body:not(.started) .subtitle  { top: 49%; }
+
+/* "터치해주세요" 안내 — 아래에서 깜빡이며 대기, 터치하면 사라짐 */
+.touch-hint {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  bottom: 11%;
+  text-align: center;
+  z-index: 7;
+  color: rgba(236, 220, 166, 0.9);
+  font-size: clamp(12px, 3.6vw, 16px);
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px rgba(255, 208, 128, 0.5);
+  opacity: 0;
+  animation: introFade 0.6s ease 1.2s forwards, hintPulse 1.9s ease-in-out 1.9s infinite;
+}
+@keyframes hintPulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+body.started .touch-hint {
+  animation: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+/* 나머지 요소: 초기 숨김 → 터치 후 각각 다른 딜레이로 순차 등장.
+   opacity 만 전환하므로 각자의 float/lunaFloat/btnShine 등과 충돌 없음. */
+.balloon, .luna-wrap, .nero-wrap, .start-btn, .icon-btn { opacity: 0; }
+body.started .balloon   { opacity: 1; transition: opacity 0.9s ease 0.2s; }  /* 1) 열기구 */
+body.started .icon-btn  { opacity: 1; transition: opacity 0.9s ease 0.6s; }  /* 2) 상단 아이콘 */
+body.started .luna-wrap { opacity: 1; transition: opacity 1.0s ease 1.0s; }  /* 3) 루나 */
+body.started .nero-wrap { opacity: 1; transition: opacity 0.9s ease 1.5s; }  /* 4) 네로 */
+body.started .start-btn { opacity: 1; transition: opacity 0.9s ease 2.0s; }  /* 5) 시작 버튼 */
