@@ -1,0 +1,11 @@
+# Claude Code 로컬 설정(개인 권한 등)
+.claude/settings.local.json
+
+# OS 생성 파일
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# 에디터/임시
+*.tmp
+*_tmp.png

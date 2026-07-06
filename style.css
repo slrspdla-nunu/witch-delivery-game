@@ -1,0 +1,202 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background: #14101f;
+  overflow: hidden;
+  font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
+}
+
+/* 세로형 모바일 화면 = 배경(853:1844) 기준.
+   내부 요소 좌표는 main.svg 의 배경 rect(1449 x 3132)를 기준으로 환산. */
+.screen {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  aspect-ratio: 853 / 1844;
+  max-height: 100vh;
+  margin: 0 auto;
+  overflow: hidden;              /* 화면 밖으로 튀어나온 부분(루나 등) 클리핑 */
+  background: #14101f;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
+}
+
+.bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* 공통 버튼 리셋 */
+button {
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+}
+button img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* ---- 로고 (SVG: x248.5 y363 w1109 h569) ---- */
+.logo {
+  position: absolute;
+  left: 11.73%;
+  top: 11.59%;
+  width: 76.53%;
+  height: 18.17%;
+  object-fit: fill;              /* 디자인대로 살짝 넓게 stretch */
+  z-index: 4;
+  filter: drop-shadow(0 4px 18px rgba(0, 0, 0, 0.45));
+  pointer-events: none;
+}
+.subtitle {
+  position: absolute;
+  top: 30.5%;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  color: #d9c9ff;
+  font-size: clamp(11px, 3.4vw, 17px);
+  letter-spacing: 1px;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+  font-weight: 500;
+  z-index: 4;
+  pointer-events: none;
+}
+.subtitle::before { content: "✦ "; color: #efe3b0; }
+.subtitle::after { content: " ✦"; color: #efe3b0; }
+
+/* ---- 상단 우측 아이콘 ---- */
+.icon-btn {
+  position: absolute;
+  left: 83.92%;
+  width: 12.91%;
+  aspect-ratio: 1;
+  z-index: 5;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+  transition: transform 0.12s ease;
+}
+.settings-btn { top: 2.27%; }    /* SVG: x1294.5 y71 */
+.mail-btn { top: 9.20%; }        /* SVG: x1294.5 y288 */
+
+.mail-btn .badge {
+  position: absolute;
+  top: 6%;
+  right: 6%;
+  width: 22%;
+  height: 22%;
+  background: #ff3b3b;
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(255, 59, 59, 0.8);
+}
+
+/* ---- 열기구 (SVG: x1008.5 y941 w420 h420) ---- */
+.balloon {
+  position: absolute;
+  left: 64.18%;
+  top: 30.04%;
+  width: 28.99%;
+  z-index: 2;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.4));
+  animation: float 6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* ---- 루나(마녀) (SVG: x0 y1151 w1218 h1511) — 왼쪽으로 튀어나옴 → 클리핑 ---- */
+.luna-wrap {
+  position: absolute;
+  left: -5.42%;
+  top: 36.75%;
+  width: 84.06%;
+  aspect-ratio: 997 / 1237;        /* 캔버스라 높이 명시 (원본 luna 비율) */
+  z-index: 3;
+  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.5));
+  pointer-events: none;
+  animation: lunaFloat 5s ease-in-out infinite;   /* 전체가 살짝 둥둥 */
+}
+#luna-mesh {
+  width: 100%;
+  height: 100%;
+}
+#luna-mesh canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+#luna-fallback:not([hidden]) {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* ---- 네로(고양이) (SVG: x869.5 y1995 w343 h559) ---- */
+.nero {
+  position: absolute;
+  left: 54.59%;
+  top: 63.70%;
+  width: 23.67%;
+  z-index: 4;
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.5));
+  pointer-events: none;
+}
+
+/* ---- 게임 시작 (SVG: x272.5 y2617 w1062 h279) ---- */
+.start-btn {
+  position: absolute;
+  left: 13.39%;
+  top: 83.56%;
+  width: 73.29%;
+  height: 8.91%;
+  z-index: 6;
+  filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.5));
+  transition: transform 0.12s ease;
+  animation: pulse 2.4s ease-in-out infinite;
+}
+.start-btn img {
+  object-fit: fill;              /* 디자인대로 stretch */
+}
+
+/* ---- 인터랙션 ---- */
+.icon-btn:active,
+.start-btn:active {
+  transform: scale(0.94);
+}
+
+@media (hover: hover) {
+  .icon-btn:hover { transform: scale(1.06); }
+  .start-btn:hover { transform: scale(1.03); }
+}
+
+/* ---- 애니메이션 ---- */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2.5%); }
+}
+@keyframes pulse {
+  0%, 100% { filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.5)); }
+  50% { filter: drop-shadow(0 4px 20px rgba(255, 226, 150, 0.55)); }
+}
+
+/* 루나 전체가 부드럽게 둥둥 */
+@keyframes lunaFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-1.8%); }
+}
