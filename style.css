@@ -281,6 +281,31 @@ button img {
   object-fit: fill;              /* 디자인대로 stretch */
 }
 
+.game-ui-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  z-index: 8;
+  opacity: 0;
+  pointer-events: none;
+}
+
+body.game-ui .game-ui-overlay {
+  opacity: 1;
+}
+
+body.game-ui .logo,
+body.game-ui .subtitle,
+body.game-ui .start-btn,
+body.game-ui .icon-btn,
+body.game-ui .touch-hint {
+  display: none;
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* ---- 인터랙션 ---- */
 .icon-btn:active,
 .start-btn:active {
@@ -363,3 +388,12 @@ body.started .icon-btn  { opacity: 1; transition: opacity 0.9s ease 0.6s; }  /* 
 body.started .luna-wrap { opacity: 1; transition: opacity 1.0s ease 1.0s; }  /* 3) 루나 */
 body.started .nero-wrap { opacity: 1; transition: opacity 0.9s ease 1.5s; }  /* 4) 네로 */
 body.started .start-btn { opacity: 1; transition: opacity 0.9s ease 2.0s; }  /* 5) 시작 버튼 */
+
+body.started.game-ui .start-btn,
+body.started.game-ui .icon-btn,
+body.started.game-ui .logo,
+body.started.game-ui .subtitle {
+  display: none;
+  opacity: 0;
+  pointer-events: none;
+}

@@ -6,6 +6,10 @@ document.addEventListener("DOMContentLoaded", () => {
     btn.addEventListener("click", () => {
       const name = btn.dataset.name;
       console.log(`[클릭] ${name}`);
+      if (btn.classList.contains("start-btn")) {
+        document.body.classList.add("game-ui");
+        return;
+      }
       // 여기에 각 화면 전환 로직을 연결하면 됩니다.
       showToast(name);
     });
