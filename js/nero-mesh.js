@@ -1,14 +1,15 @@
-// 루나 바람 애니메이션 — PixiJS 메쉬 변형 (AE 퍼펫핀 방식)
+// 네로 바람 애니메이션 — PixiJS 메쉬 변형 (AE 퍼펫핀 방식)
 // 원본 1장을 자르지 않고 격자 메쉬에 올려, 지정한 핀(pivot) 주변 정점만 흔든다.
+// 핀은 각 부위의 뿌리에 두고, 자유단(귀 끝·꼬리 끝)이 살랑거린다.
 (function () {
   "use strict";
 
-  const TEX_URL = "image/luna_main_pose_transparent1.png";
-  const mount = document.getElementById("luna-mesh");
-  const fallback = document.getElementById("luna-fallback");
+  const TEX_URL = "image/nero_cat_transparent.png";
+  const mount = document.getElementById("nero-mesh");
+  const fallback = document.getElementById("nero-fallback");
 
   function showFallback(reason) {
-    if (reason) console.warn("[luna-mesh] 폴백 사용:", reason);
+    if (reason) console.warn("[nero-mesh] 폴백 사용:", reason);
     if (mount) mount.style.display = "none";
     if (fallback) fallback.hidden = false;
   }
@@ -28,18 +29,56 @@
   const deg = (d) => (d * Math.PI) / 180;
 
   // ---- 핀 존 정의 (좌표는 텍스처 UV 0..1) ----
-  // pivot: 고정되는 핀 지점 / bbox: 영향 범위 / amp: 최대 회전각(rad)
-  // speed: 각속도(rad/s) / phase: 위상 / reach: 핀에서 자유단까지 UV 거리
+  // pivot: 고정되는 핀 지점(부위 뿌리) / bbox: 영향 범위 / amp: 최대 회전각(rad)
+  // reach: 핀에서 자유단까지 UV 거리
+  // wave "sway"  : 부드러운 사인파 살랑임 — speed(각속도), phase(위상 rad)
+  // wave "twitch": 평소 정지, 랜덤 간격으로 1~2회 쫑긋 — restMin/restMax(쉬는 간격 s 범위)
   const ZONES = [
-    { name: "star",   px: 0.235, py: 0.085, bx0: 0.18, bx1: 0.28, by0: 0.050, by1: 0.170,
-      amp: deg(14),  speed: (2 * Math.PI) / 2.8, phase: 0.0,  reach: 0.085 },
-    { name: "braidL", px: 0.280, py: 0.270, bx0: 0.09, bx1: 0.29, by0: 0.245, by1: 0.400,
-      amp: deg(9),   speed: (2 * Math.PI) / 3.2, phase: 1.1,  reach: 0.170 },
-    { name: "braidR", px: 0.660, py: 0.270, bx0: 0.65, bx1: 0.91, by0: 0.235, by1: 0.375,
-      amp: deg(9),   speed: (2 * Math.PI) / 3.6, phase: 3.0,  reach: 0.210 },
-    { name: "broom",  px: 0.300, py: 0.710, bx0: 0.00, bx1: 0.31, by0: 0.635, by1: 0.945,
-      amp: deg(6),   speed: (2 * Math.PI) / 4.4, phase: 2.0,  reach: 0.300 },
+    { name: "earL", px: 0.200, py: 0.215, bx0: 0.02, bx1: 0.32, by0: 0.020, by1: 0.235,
+      wave: "twitch", amp: deg(12), restMin: 0.9, restMax: 3.2, reach: 0.150 },
+    { name: "earR", px: 0.455, py: 0.205, bx0: 0.37, bx1: 0.64, by0: 0.020, by1: 0.225,
+      wave: "twitch", amp: deg(12), restMin: 1.1, restMax: 3.8, reach: 0.150 },
+    { name: "tail", px: 0.710, py: 0.900, bx0: 0.68, bx1: 1.00, by0: 0.520, by1: 0.980,
+      wave: "sway",   amp: deg(6),  speed: (2 * Math.PI) / 3.8, phase: 2.2, reach: 0.360 },
   ];
+
+  // 쫑긋 한 번(반사인 bump) 지속 시간과 연속 쫑긋 사이 간격 (초)
+  const FLICK = 0.16, GAP = 0.06;
+
+  // twitch 존 런타임 상태 초기화 — 첫 쫑긋까지 살짝 다른 대기시간
+  for (const z of ZONES) {
+    if (z.wave === "twitch") { z._next = 0.5 + Math.random() * 1.8; z._ev = null; }
+  }
+
+  // 존별 기준 회전각(가중치 w 곱하기 전).
+  // twitch: 진짜 고양이처럼 랜덤하게 1회 or 2회(쫑긋쫑긋) 쫑긋 / sway: 느린 살랑임.
+  function zoneAngle(z, t) {
+    if (z.wave === "twitch") {
+      let ev = z._ev;
+      if (!ev && t >= z._next) {
+        // 이벤트 시작: 절반 확률로 쫑긋쫑긋(2회), 세기도 매번 살짝 다르게
+        const flicks = Math.random() < 0.5 ? 2 : 1;
+        const dur = flicks === 2 ? FLICK * 2 + GAP : FLICK;
+        ev = z._ev = { start: t, dur, flicks, amp: z.amp * (0.85 + Math.random() * 0.3) };
+      }
+      if (!ev) return 0;
+      const local = t - ev.start;
+      if (local < 0) return 0;
+      if (local >= ev.dur) {                    // 이벤트 종료 → 다음 쫑긋 예약
+        z._ev = null;
+        z._next = t + z.restMin + Math.random() * (z.restMax - z.restMin);
+        return 0;
+      }
+      let a = 0;
+      if (local < FLICK) {                       // 첫 번째 쫑긋
+        a = Math.sin((local / FLICK) * Math.PI);
+      } else if (ev.flicks === 2 && local >= FLICK + GAP) {
+        a = Math.sin(((local - FLICK - GAP) / FLICK) * Math.PI) * 0.9; // 둘째는 살짝 작게
+      }
+      return ev.amp * a;
+    }
+    return z.amp * Math.sin(t * z.speed + z.phase);
+  }
   const EDGE = 0.03; // bbox 가장자리 페이드 폭(UV)
 
   (async function init() {
@@ -79,7 +118,7 @@
     app.view.style.height = "100%";
     app.view.style.display = "block";
 
-    const SEGX = 30, SEGY = 36;
+    const SEGX = 26, SEGY = 40;
     const geometry = new PIXI.PlaneGeometry(W, H, SEGX, SEGY);
     const mesh = new PIXI.Mesh(geometry, new PIXI.MeshMaterial(tex));
     app.stage.addChild(mesh);
@@ -113,12 +152,14 @@
 
     let elapsed = 0;
     function applyDeform(t) {
+      // 존별 기준 각도는 프레임당 1회만 계산 (twitch가 상태를 갖기 때문)
+      for (const z of ZONES) z._ang = zoneAngle(z, t);
       for (let i = 0; i < rest.length; i += 2) {
         let x = rest[i], y = rest[i + 1];
         const list = vertWeights[i / 2];
         for (let k = 0; k < list.length; k++) {
           const { z, w } = list[k];
-          const ang = z.amp * Math.sin(t * z.speed + z.phase) * w;
+          const ang = z._ang * w;
           if (ang === 0) continue;
           const cx = z.px * W, cy = z.py * H;   // 핀(픽셀)
           const dx = x - cx, dy = y - cy;
@@ -137,7 +178,7 @@
     });
 
     // 디버그 훅 (검증용) — 정점 이동량 확인에 사용
-    window.__lunaMesh = {
+    window.__neroMesh = {
       sumDelta() {
         let s = 0;
         for (let i = 0; i < rest.length; i++) s += Math.abs(pos[i] - rest[i]);
@@ -158,8 +199,13 @@
         };
       },
       step(t) { applyDeform(t); return this.maxDelta(); }, // 수동 프레임 (검증용)
+      angles() { // 현재 프레임 존별 기준각(도) — 쫑긋 검증용
+        const o = {};
+        for (const z of ZONES) o[z.name] = +((z._ang || 0) * 180 / Math.PI).toFixed(2);
+        return o;
+      },
     };
 
-    console.log("[luna-mesh] 초기화 완료 — 정점", rest.length / 2, "개, 존", ZONES.length);
+    console.log("[nero-mesh] 초기화 완료 — 정점", rest.length / 2, "개, 존", ZONES.length);
   })();
 })();

@@ -12,6 +12,9 @@
     <!-- 배경 -->
     <img class="bg" src="image/background_clean.png" alt="배경" />
 
+    <!-- 지평선 태양빛 (배경 노을 위 은은한 발광) -->
+    <div class="sun-glow" aria-hidden="true"></div>
+
     <!-- 로고 타이틀 -->
     <img class="logo" src="image/logo_title_hq.png" alt="마녀 배달부의 비상착륙" />
     <p class="subtitle">달빛 하늘 도시의 배달 이야기</p>
@@ -31,19 +34,24 @@
     <!-- 루나(마녀) : PixiJS 메쉬로 렌더링, 핀 존만 바람에 흔들림 -->
     <div class="luna-wrap">
       <div id="luna-mesh"></div>
-      <img id="luna-fallback" src="image/luna_main_pose_transparent.png" alt="루나" hidden />
+      <img id="luna-fallback" src="image/luna_main_pose_transparent1.png" alt="루나" hidden />
     </div>
 
-    <!-- 네로(고양이) -->
-    <img class="nero" src="image/nero_cat_transparent.png" alt="네로" />
+    <!-- 네로(고양이) : PixiJS 메쉬로 렌더링, 핀 존(양쪽 귀·꼬리)만 바람에 흔들림 -->
+    <div class="nero-wrap">
+      <div id="nero-mesh"></div>
+      <img id="nero-fallback" src="image/nero_cat_transparent.png" alt="네로" hidden />
+    </div>
 
     <!-- 게임 시작 -->
     <button class="start-btn" data-name="게임 시작">
-      <img src="image/button_game_start_hq.png" alt="게임 시작" />
+      <img src="image/button_game_stat.png" alt="게임 시작" />
     </button>
   </div>
 
   <script src="script.js"></script>
   <script src="js/luna-mesh.js"></script>
+  <script src="js/nero-mesh.js"></script>
+  <script src="js/bgm.js"></script>
 </body>
 </html>

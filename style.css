@@ -1,3 +1,10 @@
+@font-face {
+  font-family: 'Ridibatang';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_twelve@1.0/RIDIBatang.woff') format('woff');
+  font-weight: normal;
+  font-display: swap;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -12,16 +19,27 @@ html, body {
   overflow: hidden;
   font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
 }
+/* 어떤 폰이든 디자인 화면을 가운데 정렬 (남는 공간은 어두운 레터박스) */
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;            /* 모바일 주소창 표시/숨김 대응 */
+}
 
 /* 세로형 모바일 화면 = 배경(853:1844) 기준.
-   내부 요소 좌표는 main.svg 의 배경 rect(1449 x 3132)를 기준으로 환산. */
+   내부 요소 좌표는 main.svg 의 배경 rect(1449 x 3132)를 기준으로 환산.
+   비율을 항상 유지한 채 뷰포트 안에 '맞춤(contain)' → 모든 폰에서 요소가 배경과 정렬됨. */
 .screen {
   position: relative;
-  width: 100%;
-  max-width: 460px;
   aspect-ratio: 853 / 1844;
-  max-height: 100vh;
-  margin: 0 auto;
+  /* 너비를 (가로폭 / 세로높이에 맞는 폭 / 최대치) 중 가장 작은 값으로 → 양방향 모두 안 넘침.
+     높이는 aspect-ratio로 자동 도출되어 비율이 절대 깨지지 않음. */
+  width: min(100vw, 100vh * 853 / 1844, 460px);
+  width: min(100vw, 100dvh * 853 / 1844, 460px);
+  height: auto;
+  flex: none;
   overflow: hidden;              /* 화면 밖으로 튀어나온 부분(루나 등) 클리핑 */
   background: #14101f;
   box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
@@ -36,6 +54,34 @@ html, body {
   z-index: 0;
   user-select: none;
   pointer-events: none;
+}
+
+/* ---- 지평선 태양빛 (배경 노을 위 발광 오버레이) ---- */
+.sun-glow {
+  position: absolute;
+  left: 58%;                 /* 노을(해) 중심 — 필요시 미세조정 */
+  top: 46%;
+  width: 34%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  z-index: 1;                /* 배경 위, 캐릭터 아래 */
+  pointer-events: none;
+  mix-blend-mode: screen;    /* 빛을 더하듯 블렌딩 */
+  /* 밝은 코어 → 따뜻한 헤일로 → 투명 */
+  background:
+    radial-gradient(circle at center,
+      rgba(255, 249, 224, 0.95) 0%,
+      rgba(255, 224, 150, 0.70) 14%,
+      rgba(255, 186, 96, 0.38) 34%,
+      rgba(255, 150, 70, 0.14) 55%,
+      rgba(255, 140, 60, 0) 72%);
+  filter: blur(1px);
+  animation: sunGlow 4.8s ease-in-out infinite;
+}
+@keyframes sunGlow {
+  0%, 100% { opacity: 0.72; transform: translate(-50%, -50%) scale(1); }
+  50%      { opacity: 1;    transform: translate(-50%, -50%) scale(1.07); }
 }
 
 /* 공통 버튼 리셋 */
@@ -68,20 +114,33 @@ button img {
 }
 .subtitle {
   position: absolute;
-  top: 30.5%;
+  top: 28.9%;
   left: 0;
   width: 100%;
   text-align: center;
-  color: #d9c9ff;
-  font-size: clamp(11px, 3.4vw, 17px);
+  font-family: 'Ridibatang', "Noto Sans KR", serif;
+  color: #ECDCA6;                                    /* 미지원 브라우저 폴백 */
+  background: linear-gradient(#FBEBB4, #DFA945);     /* 위(밝은)→아래(깊은) 골드 */
+  -webkit-background-clip: text;
+          background-clip: text;
+  -webkit-text-fill-color: transparent;             /* 글자를 그라데이션으로 채움 */
+  font-size: clamp(9px, 2.8vw, 13px);
   letter-spacing: 1px;
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+  text-shadow: 0 0 9px rgba(255, 208, 128, 0.55);   /* 은은한 따뜻한 발광 (채움색과 무관) */
   font-weight: 500;
   z-index: 4;
   pointer-events: none;
 }
-.subtitle::before { content: "✦ "; color: #efe3b0; }
-.subtitle::after { content: " ✦"; color: #efe3b0; }
+.subtitle::before,
+.subtitle::after {
+  color: #ECDCA6;                                    /* 폴백 */
+  background: linear-gradient(#FBEBB4, #DFA945);
+  -webkit-background-clip: text;
+          background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.subtitle::before { content: "✦ "; }
+.subtitle::after { content: " ✦"; }
 
 /* ---- 상단 우측 아이콘 ---- */
 .icon-btn {
@@ -114,7 +173,6 @@ button img {
   top: 30.04%;
   width: 28.99%;
   z-index: 2;
-  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.4));
   animation: float 6s ease-in-out infinite;
   pointer-events: none;
 }
@@ -147,15 +205,31 @@ button img {
   display: block;
 }
 
-/* ---- 네로(고양이) (SVG: x869.5 y1995 w343 h559) ---- */
-.nero {
+/* ---- 네로(고양이) (SVG: x869.5 y1995 w343 h559) — 캔버스 메쉬로 렌더 ---- */
+.nero-wrap {
   position: absolute;
   left: 54.59%;
   top: 63.70%;
   width: 23.67%;
+  aspect-ratio: 690 / 1124;        /* 캔버스라 높이 명시 (원본 nero 비율) */
   z-index: 4;
   filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.5));
   pointer-events: none;
+}
+#nero-mesh {
+  width: 100%;
+  height: 100%;
+}
+#nero-mesh canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+#nero-fallback:not([hidden]) {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 
 /* ---- 게임 시작 (SVG: x272.5 y2617 w1062 h279) ---- */
@@ -168,7 +242,30 @@ button img {
   z-index: 6;
   filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.5));
   transition: transform 0.12s ease;
-  animation: pulse 2.4s ease-in-out infinite;
+}
+/* 버튼 위 빛 스침 — 대각선 빛줄기가 주기적으로 슥 지나감.
+   버튼 PNG 알파를 마스크로 써서 명판 모양 안에서만 반짝임 */
+.start-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;                    /* 버튼 이미지 위 */
+  pointer-events: none;
+  background: linear-gradient(105deg,
+    transparent 43%,
+    rgba(255, 255, 255, 0.55) 50%,
+    transparent 57%);
+  background-size: 250% 100%;
+  background-repeat: no-repeat;
+  -webkit-mask: url("image/button_game_stat.png") center / 100% 100% no-repeat;
+          mask: url("image/button_game_stat.png") center / 100% 100% no-repeat;
+  mix-blend-mode: screen;
+  animation: btnShine 4.5s ease-in-out infinite;
+}
+@keyframes btnShine {
+  0%   { background-position: 130% 0; }
+  34%  { background-position: -30% 0; }   /* 가로지르는 구간을 넓혀 더 천천히 미끄러짐 */
+  100% { background-position: -30% 0; }   /* 지나간 뒤 다음 주기까지 대기 */
 }
 .start-btn img {
   object-fit: fill;              /* 디자인대로 stretch */
@@ -189,10 +286,6 @@ button img {
 @keyframes float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-2.5%); }
-}
-@keyframes pulse {
-  0%, 100% { filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.5)); }
-  50% { filter: drop-shadow(0 4px 20px rgba(255, 226, 150, 0.55)); }
 }
 
 /* 루나 전체가 부드럽게 둥둥 */
