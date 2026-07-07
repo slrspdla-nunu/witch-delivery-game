@@ -33,11 +33,12 @@ body {
    비율을 항상 유지한 채 뷰포트 안에 '맞춤(contain)' → 모든 폰에서 요소가 배경과 정렬됨. */
 .screen {
   position: relative;
-  aspect-ratio: 853 / 1844;
+  aspect-ratio: 390 / 844;
   /* 너비를 (가로폭 / 세로높이에 맞는 폭 / 최대치) 중 가장 작은 값으로 → 양방향 모두 안 넘침.
-     높이는 aspect-ratio로 자동 도출되어 비율이 절대 깨지지 않음. */
-  width: min(100vw, 100vh * 853 / 1844, 460px);
-  width: min(100vw, 100dvh * 853 / 1844, 460px);
+     높이는 aspect-ratio로 자동 도출되어 비율이 절대 깨지지 않음.
+     기본(기준) 크기는 390 x 844. */
+  width: min(100vw, 100vh * 390 / 844, 390px);
+  width: min(100vw, 100dvh * 390 / 844, 390px);
   height: auto;
   flex: none;
   /* 배경이 뷰포트를 꽉 채우므로, 틀 경계에서 자르지 않고 루나가 배경 위로 이어지게 함.
@@ -58,6 +59,21 @@ body {
   z-index: 0;
   user-select: none;
   pointer-events: none;
+}
+
+/* 넓은 화면(PC·태블릿): 배경을 뷰포트가 아니라 390x844 프레임 안에 가둬,
+   폰처럼 가운데 정렬된 화면 + 어두운 여백으로 보이게 함.
+   폰(<=480px)에서는 위의 풀블리드 배경을 그대로 유지. */
+@media (min-width: 481px) {
+  .bg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+  }
+  .screen {
+    overflow: hidden;         /* 프레임 밖으로 넘치는 캐릭터가 어두운 여백에 걸리지 않게 */
+    border-radius: 18px;      /* 폰 화면 느낌 */
+  }
 }
 
 /* ---- 지평선 태양빛 (배경 노을 위 발광 오버레이) ---- */
@@ -94,6 +110,7 @@ button {
   background: none;
   cursor: pointer;
   padding: 0;
+  transition: transform 0.12s ease, filter 0.12s ease;
 }
 button img {
   width: 100%;
@@ -154,6 +171,7 @@ button img {
   aspect-ratio: 1;
   z-index: 5;
   filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+  transform: scale(calc(var(--hover-scale, 1) * var(--press-scale, 1)));
   transition: transform 0.12s ease;
 }
 .settings-btn { top: 2.27%; }    /* SVG: x1294.5 y71 */
@@ -251,6 +269,7 @@ button img {
   height: 8.91%;
   z-index: 6;
   filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.5));
+  transform: scale(calc(var(--hover-scale, 1) * var(--press-scale, 1)));
   transition: transform 0.12s ease;
 }
 /* 버튼 위 빛 스침 — 대각선 빛줄기가 주기적으로 슥 지나감.
@@ -281,19 +300,680 @@ button img {
   object-fit: fill;              /* 디자인대로 stretch */
 }
 
-.game-ui-overlay {
+.top-hud {
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+  opacity: 0;
+  pointer-events: none;
+  color: #ffe7b0;
+  font-family: 'Ridibatang', "Noto Sans KR", "Malgun Gothic", serif;
+  text-shadow:
+    0 1px 2px rgba(55, 25, 40, 0.9),
+    0 0 4px rgba(255, 211, 126, 0.55);
+}
+
+body.game-ui .top-hud {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.top-profile {
+  position: absolute;
+  left: 1.45%;
+  top: 0.25%;
+  width: 17.4%;
+  aspect-ratio: 1;
+}
+
+.top-profile-portrait,
+.top-profile-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.top-profile-portrait {
+  transform: scale(0.82) translateY(1%);
+  transform-origin: center;
+  clip-path: circle(41% at 50% 50%);
+}
+
+.top-player-name {
+  position: absolute;
+  left: 18.18%;
+  top: 1.88%;
+  min-width: 18%;
+  font-size: clamp(10px, 4.0vw, 17px);
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.top-level {
+  position: absolute;
+  left: 17.88%;
+  top: 4.82%;
+  width: 5.25%;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #32234f 0%, #171323 74%);
+  border: 1px solid rgba(255, 208, 103, 0.95);
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.65);
+  color: #ffeec4;
+  font: 700 clamp(8px, 2.8vw, 13px) / 1 "Noto Sans KR", "Malgun Gothic", sans-serif;
+}
+
+.top-exp {
+  position: absolute;
+  left: 22.52%;
+  top: 4.70%;
+  width: 21.85%;
+  height: 2.65%;
+}
+
+.top-exp-fill {
+  position: absolute;
+  left: 7.25%;
+  top: 26%;
+  width: var(--exp-progress);
+  max-width: 86%;
+  height: 48%;
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(255, 225, 255, 0.55) 0%, rgba(255, 255, 255, 0.12) 30%, rgba(70, 20, 130, 0) 58%),
+    linear-gradient(90deg, #5a2ab5 0%, #8a45df 55%, #b872f8 100%);
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.48),
+    inset 0 -1px 2px rgba(36, 10, 80, 0.72),
+    0 0 4px rgba(153, 80, 235, 0.55);
+  pointer-events: none;
+}
+
+.top-exp-frame {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: fill;
-  z-index: 8;
+  pointer-events: none;
+}
+
+.top-exp-value {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #f4d5ff;
+  font: 700 clamp(7px, 2.35vw, 10px) / 1 "Noto Sans KR", "Malgun Gothic", sans-serif;
+  letter-spacing: 0;
+  text-shadow: 0 1px 2px rgba(43, 18, 67, 0.95);
+}
+
+.top-currency {
+  position: absolute;
+  top: 3.34%;
+  width: 26.8%;
+  height: 4.18%;
+  z-index: 1;
+  transform: scale(calc(var(--hover-scale, 1) * var(--press-scale, 1)));
+  transition: transform 0.12s ease, filter 0.12s ease;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.55));
+}
+
+.top-coin { left: 45.85%; }
+.top-gem { left: 72.15%; }
+
+.top-currency-panel,
+.top-currency-icon {
+  position: absolute;
+  pointer-events: none;
+}
+
+.top-currency-panel {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+}
+
+.top-currency-icon {
+  left: 6%;
+  top: 14%;
+  width: 20.5%;
+  height: 72%;
+  object-fit: contain;
+}
+
+.top-currency-value {
+  position: absolute;
+  left: 29%;
+  top: 0;
+  width: 46%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: #ffe4a3;
+  font-size: clamp(10px, 3.55vw, 15px);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.top-currency-plus {
+  position: absolute;
+  right: 10.8%;
+  top: 45%;
+  transform: translateY(-50%);
+  color: #ffd46f;
+  font: 900 clamp(10px, 3.25vw, 14px) / 1 "Noto Sans KR", "Malgun Gothic", sans-serif;
+  text-shadow: 0 1px 2px rgba(45, 20, 35, 0.95);
+  pointer-events: none;
+}
+
+.left-menu,
+.right-menu,
+.bottom-menu,
+.action-menu {
+  position: absolute;
+  inset: 0;
+  z-index: 9;
   opacity: 0;
   pointer-events: none;
 }
 
-body.game-ui .game-ui-overlay {
+body.game-ui .left-menu,
+body.game-ui .right-menu,
+body.game-ui .bottom-menu,
+body.game-ui .action-menu {
   opacity: 1;
+  pointer-events: none;
+}
+
+body.game-ui .left-menu-btn,
+body.game-ui .right-menu-btn,
+body.game-ui .bottom-menu-btn,
+body.game-ui .action-menu-btn {
+  pointer-events: auto;
+}
+
+body.request-view .top-hud,
+body.request-view .left-menu,
+body.request-view .right-menu,
+body.request-view .bottom-menu,
+body.request-view .action-menu {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.left-menu-btn,
+.right-menu-btn {
+  position: absolute;
+  width: 10.10%;
+  aspect-ratio: 1 / 1.42;
+  z-index: 1;
+  filter: drop-shadow(0 2px 7px rgba(0, 0, 0, 0.58));
+  transform: scale(calc(var(--hover-scale, 1) * var(--press-scale, 1)));
+  transition: transform 0.12s ease, filter 0.12s ease;
+  touch-action: manipulation;
+}
+
+.left-menu-btn { left: 4.21%; }
+.left-menu-broom { top: 15.78%; }
+.left-menu-quest { top: 22.56%; }
+.left-menu-shop { top: 29.82%; }
+.left-menu-book { top: 36.87%; }
+.left-menu-trophy { top: 43.92%; }
+
+.right-menu-btn { left: 88.28%; }
+.right-menu-mail { top: 8.96%; }
+.right-menu-event { top: 16.01%; }
+.right-menu-notice { top: 23.07%; }
+
+.left-menu-frame,
+.left-menu-icon,
+.right-menu-frame,
+.right-menu-icon {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.left-menu-icon,
+.right-menu-icon {
+  transform: scale(0.72);
+  transform-origin: center;
+  filter: drop-shadow(0 2px 2px rgba(31, 16, 28, 0.7));
+}
+
+.left-menu-label,
+.right-menu-label {
+  position: absolute;
+  left: 50%;
+  top: 58%;
+  width: 170%;
+  transform: translateX(-50%);
+  color: #f8d9a2;
+  font-family: 'Ridibatang', "Noto Sans KR", "Malgun Gothic", serif;
+  font-size: clamp(8px, 2.85vw, 12px);
+  font-weight: 800;
+  line-height: 1.05;
+  text-align: center;
+  white-space: nowrap;
+  text-shadow:
+    0 1px 2px rgba(30, 16, 28, 0.95),
+    0 0 3px rgba(255, 220, 145, 0.45);
+  pointer-events: none;
+}
+
+.bottom-menu-btn {
+  position: absolute;
+  top: 88.48%;
+  width: 18.05%;
+  aspect-ratio: 154 / 178;
+  z-index: 1;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.64));
+  transform: scale(calc(var(--hover-scale, 1) * var(--press-scale, 1)));
+  transform-origin: center;
+  transition: transform 0.12s ease, filter 0.12s ease;
+}
+
+.bottom-menu-myroom { left: 0.8%; }
+.bottom-menu-outfit { left: 20.1%; }
+.bottom-menu-friends { left: 39.4%; }
+.bottom-menu-record { left: 58.7%; }
+.bottom-menu-settings { left: 78.0%; }
+
+.bottom-menu-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.action-menu-btn {
+  position: absolute;
+  left: 59.2%;
+  width: 38.57%;
+  aspect-ratio: 330 / 126;
+  z-index: 9;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.58));
+  transform: scale(calc(var(--hover-scale, 1) * var(--press-scale, 1)));
+  transform-origin: center;
+  transition: opacity 0.2s ease, transform 0.12s ease, filter 0.12s ease;
+}
+
+.action-menu-daily { top: 44.7%; }
+.action-menu-request { top: 52.6%; }
+.action-menu-adventure { top: 60.5%; }
+.action-menu-special { top: 68.4%; }
+
+.action-menu-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.request-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  opacity: 0;
+  pointer-events: none;
+  overflow: hidden;
+  color: #302942;
+  font-family: 'Ridibatang', "Noto Sans KR", "Malgun Gothic", serif;
+  /* 불투명한 도시 밤하늘 배경 — 뒤(루나·네로 등)가 절대 비치지 않음 */
+  background:
+    linear-gradient(180deg, rgba(20, 17, 48, 0.82) 0%, rgba(30, 24, 66, 0.62) 40%, rgba(12, 10, 30, 0.9) 100%),
+    url("image/background_clean_generated_ext.png") center / cover no-repeat,
+    #14112f;
+}
+
+body.request-view .request-screen {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.request-screen::before {
+  content: "";
+  position: absolute;
+  left: 9%;
+  top: 13.9%;
+  width: 14%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 62% 35%, transparent 0 42%, #fff2d3 44% 70%, transparent 72%);
+  filter: drop-shadow(0 0 12px rgba(255, 235, 198, 0.58));
+  pointer-events: none;
+}
+
+.request-back {
+  position: absolute;
+  left: 5.2%;
+  top: 3.8%;
+  width: 11.8%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 1px solid rgba(236, 188, 135, 0.75);
+  background: radial-gradient(circle at 35% 30%, rgba(91, 61, 91, 0.9), rgba(26, 23, 49, 0.94));
+  color: #f2d5b4;
+  font: 700 clamp(28px, 9vw, 36px) / 0.75 "Noto Sans KR", sans-serif;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 0 0 2px rgba(51, 37, 60, 0.85), 0 4px 12px rgba(0, 0, 0, 0.45);
+}
+
+.request-title {
+  position: absolute;
+  left: 22%;
+  top: 6.2%;
+  width: 56%;
+  text-align: center;
+  color: #f6d9ae;
+  text-shadow: 0 2px 2px rgba(43, 26, 52, 0.9), 0 0 8px rgba(255, 214, 148, 0.55);
+}
+
+.request-title span {
+  display: block;
+  font-size: clamp(30px, 12.2vw, 48px);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.request-title small {
+  display: block;
+  margin-top: 5.5%;
+  font-size: clamp(14px, 5.2vw, 20px);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.request-currencies {
+  position: absolute;
+  right: 3.4%;
+  top: 3.9%;
+  display: flex;
+  gap: 3%;
+  width: 41%;
+}
+
+.request-currency {
+  position: relative;
+  flex: 1;
+  aspect-ratio: 884 / 279;
+  color: #ffe4a3;
+  text-shadow: 0 1px 2px rgba(45, 20, 35, 0.95);
+}
+
+.request-currency > img:first-child {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+}
+
+.request-currency-icon {
+  position: absolute;
+  left: 5.8%;
+  top: 14%;
+  width: 21%;
+  height: 72%;
+  object-fit: contain;
+}
+
+.request-currency span {
+  position: absolute;
+  left: 30%;
+  top: 0;
+  width: 45%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  font-size: clamp(8px, 2.9vw, 12px);
+  font-weight: 800;
+}
+
+.request-currency b {
+  position: absolute;
+  right: 10%;
+  top: 43%;
+  transform: translateY(-50%);
+  font: 900 clamp(8px, 2.7vw, 12px) / 1 "Noto Sans KR", sans-serif;
+}
+
+/* ===== 의뢰 카드: 세로형 상세 프레임(1086x1448), 2x2 그리드 =====
+   버튼을 세로 flex 로, 프레임은 배경. 폰트는 카드 폭(cqw) 비례.
+   콘텐츠 순서(아이콘→정보→메타)가 그대로 세로로 흐름. */
+.request-list {
+  position: absolute;
+  left: 6%;
+  top: 20.2%;
+  right: 6%;
+  bottom: 10.7%;
+  width: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 3.2%;
+  row-gap: 2.4%;
+  align-items: center;
+  justify-items: center;
+}
+
+.request-card {
+  position: relative;
+  width: 100%;
+  max-height: 100%;
+  aspect-ratio: 891 / 1383;
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
+  filter: drop-shadow(0 3px 6px rgba(18, 12, 32, 0.34));
+  transform: scale(calc(var(--hover-scale, 1) * var(--press-scale, 1)));
+  transition: transform 0.12s ease;
+}
+
+.request-card-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  z-index: 0;
+  pointer-events: none;
+}
+.request-card > *:not(.request-card-frame) { z-index: 2; }
+
+/* 아이콘 (상단, 크게) */
+.rq-icon {
+  position: absolute;
+  left: 12%;
+  top: 8.5%;
+  width: 76%;
+  height: 38%;
+  object-fit: contain;
+}
+
+/* 제목 + 설명 (가운데 정렬) */
+.rq-info {
+  position: absolute;
+  left: 11%;
+  top: 49%;
+  width: 78%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.rq-title {
+  color: #311F2E;
+  font-weight: 800;
+  font-size: 10.2cqw;
+  line-height: 1.05;
+  text-align: center;
+  white-space: nowrap;
+}
+.rq-desc {
+  color: #4a3a44;
+  font-family: 'Ridibatang', "Noto Sans KR", serif;
+  font-size: 6.35cqw;
+  line-height: 1.28;
+  text-align: center;
+}
+
+/* 난이도·별 / 보상·재화 (각 행 가운데 정렬, 세로로 쌓임) */
+.rq-meta {
+  position: absolute;
+  left: 9%;
+  top: 69%;
+  width: 82%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.rq-mrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-width: 0;
+}
+
+.rq-diff-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 7px;
+  background: linear-gradient(180deg, #4a3a68, #31264d);
+  border: 0.5px solid rgba(20, 14, 30, 0.55);
+  border-radius: 4px;
+  color: #FBE6C2;
+  font-weight: 700;
+  font-size: 5.8cqw;
+  white-space: nowrap;
+}
+
+.rq-stars {
+  font-size: 7.05cqw;
+  letter-spacing: -0.42cqw;
+  line-height: 1;
+  white-space: nowrap;
+}
+.rq-stars i { font-style: normal; color: #cdb894; }
+.rq-stars i.on { color: #f3aa2d; text-shadow: 0 0.5px 1px rgba(120, 70, 20, 0.4); }
+
+.rq-reward-label {
+  color: #311F2E;
+  font-weight: 700;
+  font-size: 5.8cqw;
+  white-space: nowrap;
+}
+.rq-reward-vals {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  color: #311F2E;
+  font-weight: 700;
+  font-family: 'Ridibatang', "Noto Sans KR", serif;
+  font-size: 6.25cqw;
+  white-space: nowrap;
+}
+.rq-reward-vals img {
+  width: 1.15em;
+  height: 1.15em;
+  object-fit: contain;
+}
+.rq-reward-vals .rq-gem { margin-left: 4px; }
+
+/* 잠긴 카드 */
+.request-card-locked { opacity: 0.92; }
+.request-card-locked .rq-mrow:last-child {
+  flex-direction: column;
+  gap: 3px;
+}
+.rq-unlock {
+  order: 2;
+  color: #5d5160;
+  font-family: 'Ridibatang', "Noto Sans KR", serif;
+  font-size: 5.4cqw;
+  line-height: 1.18;
+  text-align: center;
+}
+.rq-lock {
+  order: 1;
+  width: 13cqw;
+  height: auto;
+  aspect-ratio: 1;
+  fill: #311F2E;
+}
+
+.request-refresh {
+  position: absolute;
+  left: 50%;
+  bottom: 3.9%;
+  width: 44%;
+  height: 5.1%;
+  transform: translateX(-50%) scale(calc(var(--hover-scale, 1) * var(--press-scale, 1)));
+  transform-origin: center;
+  border-radius: 999px;
+  border: 1px solid rgba(238, 188, 130, 0.78);
+  background: linear-gradient(180deg, rgba(56, 43, 70, 0.96), rgba(28, 24, 46, 0.96));
+  color: #f7d8a6;
+  display: grid;
+  grid-template-columns: 18% 1fr 16% 17%;
+  align-items: center;
+  padding: 0 5%;
+  box-shadow: 0 0 0 2px rgba(20, 15, 32, 0.45), 0 4px 12px rgba(0, 0, 0, 0.45);
+  text-shadow: 0 1px 2px rgba(20, 12, 30, 0.8);
+}
+
+.request-refresh span {
+  font: 900 clamp(15px, 5vw, 20px) / 1 "Noto Sans KR", sans-serif;
+}
+
+.request-refresh b,
+.request-refresh em {
+  font: 800 clamp(12px, 4vw, 16px) / 1 "Noto Sans KR", sans-serif;
+  font-style: normal;
+  white-space: nowrap;
+}
+
+.request-refresh img {
+  width: 100%;
+  height: 70%;
+  object-fit: contain;
+}
+
+body.request-view .balloon,
+body.request-view .luna-wrap,
+body.request-view .nero-wrap,
+body.request-view .sun-glow {
+  opacity: 0;
+  pointer-events: none;
 }
 
 body.game-ui .logo,
@@ -307,14 +987,46 @@ body.game-ui .touch-hint {
 }
 
 /* ---- 인터랙션 ---- */
+button[data-name] {
+  --hover-scale: 1;
+  --press-scale: 1;
+}
+
+button[data-name].is-pressing {
+  --press-scale: 0.94;
+  filter: brightness(1.08) drop-shadow(0 3px 9px rgba(0, 0, 0, 0.64));
+}
+
 .icon-btn:active,
-.start-btn:active {
-  transform: scale(0.94);
+.start-btn:active,
+.top-currency:active,
+.left-menu-btn:active,
+.right-menu-btn:active,
+.bottom-menu-btn:active,
+.action-menu-btn:active,
+.request-action-btn:active,
+.request-back:active,
+.request-refresh:active,
+.request-card:active {
+  --press-scale: 0.94;
 }
 
 @media (hover: hover) {
-  .icon-btn:hover { transform: scale(1.06); }
-  .start-btn:hover { transform: scale(1.03); }
+  .icon-btn:hover { --hover-scale: 1.06; }
+  .start-btn:hover { --hover-scale: 1.03; }
+  .top-currency:hover { --hover-scale: 1.03; }
+  .left-menu-btn:hover,
+  .right-menu-btn:hover,
+  .bottom-menu-btn:hover,
+  .action-menu-btn:hover {
+    --hover-scale: 1.06;
+    filter: drop-shadow(0 3px 9px rgba(0, 0, 0, 0.65));
+  }
+
+  .request-refresh:hover,
+  .request-card:hover {
+    --hover-scale: 1.02;
+  }
 }
 
 /* ---- 애니메이션 ---- */
