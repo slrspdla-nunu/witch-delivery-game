@@ -19,15 +19,6 @@
     <img class="logo" src="image/logo_title_hq.png" alt="마녀 배달부의 비상착륙" />
     <p class="subtitle">달빛 하늘 도시의 배달 이야기</p>
 
-    <!-- 상단 우측 아이콘 -->
-    <button class="icon-btn settings-btn" data-name="설정">
-      <img src="image/button_settings_hq.png" alt="설정" />
-    </button>
-    <button class="icon-btn mail-btn" data-name="우편함">
-      <img src="image/button_mail_hq.png" alt="우편함" />
-      <span class="badge"></span>
-    </button>
-
     <!-- 열기구 -->
     <img class="balloon" src="image/hot_air_balloon_large.png" alt="열기구" />
 
@@ -83,11 +74,6 @@
         <img class="left-menu-icon" src="image/ui_left_icon_broom.png" alt="" aria-hidden="true" />
         <span class="left-menu-label">빗자루</span>
       </button>
-      <button class="left-menu-btn left-menu-quest" data-name="의뢰 목록" aria-label="의뢰 목록">
-        <img class="left-menu-frame" src="image/ui_left_button_frame.png" alt="" aria-hidden="true" />
-        <img class="left-menu-icon" src="image/ui_left_icon_quest.png" alt="" aria-hidden="true" />
-        <span class="left-menu-label">의뢰 목록</span>
-      </button>
       <button class="left-menu-btn left-menu-shop" data-name="상점" aria-label="상점">
         <img class="left-menu-frame" src="image/ui_left_button_frame.png" alt="" aria-hidden="true" />
         <img class="left-menu-icon" src="image/ui_left_icon_shop.png" alt="" aria-hidden="true" />
@@ -98,15 +84,9 @@
         <img class="left-menu-icon" src="image/ui_left_icon_book.png" alt="" aria-hidden="true" />
         <span class="left-menu-label">도감</span>
       </button>
-      <button class="left-menu-btn left-menu-trophy" data-name="업적" aria-label="업적">
-        <img class="left-menu-frame" src="image/ui_left_button_frame.png" alt="" aria-hidden="true" />
-        <img class="left-menu-icon" src="image/ui_left_icon_trophy.png" alt="" aria-hidden="true" />
-        <span class="left-menu-label">업적</span>
-      </button>
     </nav>
 
-    <!-- 오른쪽 게임 메뉴: 프레임/아이콘 이미지 + 별도 텍스트 -->
-    <nav class="right-menu" aria-label="오른쪽 게임 메뉴">
+    <nav class="right-menu" aria-label="오른쪽 보조 메뉴">
       <button class="right-menu-btn right-menu-mail" data-name="우편" aria-label="우편">
         <img class="right-menu-frame" src="image/ui_left_button_frame.png" alt="" aria-hidden="true" />
         <img class="right-menu-icon" src="image/ui_right_icon_mail.png" alt="" aria-hidden="true" />
@@ -116,11 +96,6 @@
         <img class="right-menu-frame" src="image/ui_left_button_frame.png" alt="" aria-hidden="true" />
         <img class="right-menu-icon" src="image/ui_right_icon_event.png" alt="" aria-hidden="true" />
         <span class="right-menu-label">이벤트</span>
-      </button>
-      <button class="right-menu-btn right-menu-notice" data-name="공지사항" aria-label="공지사항">
-        <img class="right-menu-frame" src="image/ui_left_button_frame.png" alt="" aria-hidden="true" />
-        <img class="right-menu-icon" src="image/ui_right_icon_notice.png" alt="" aria-hidden="true" />
-        <span class="right-menu-label">공지사항</span>
       </button>
     </nav>
 
@@ -158,11 +133,12 @@
     </nav>
 
     <section class="request-screen" aria-label="의뢰 선택 화면">
-      <button class="request-back" data-name="돌아가기" aria-label="돌아가기">‹</button>
+      <button class="request-back" data-name="돌아가기" aria-label="돌아가기">
+        <img src="image/ui_request_back_button.png" alt="" aria-hidden="true" />
+      </button>
 
       <div class="request-title">
         <span>의뢰 선택</span>
-        <small>오늘의 배달 의뢰</small>
       </div>
 
       <div class="request-currencies" aria-hidden="true">
@@ -259,19 +235,15 @@
               <span class="rq-diff-tag">난이도</span>
               <span class="rq-stars" aria-label="난이도 별 5개"><i class="on">★</i><i class="on">★</i><i class="on">★</i><i class="on">★</i><i class="on">★</i></span>
             </span>
-            <span class="rq-mrow">
-              <span class="rq-unlock">이전 의뢰 완료 시<br />해금됩니다.</span>
+            <span class="rq-mrow rq-lock-row">
               <svg class="rq-lock" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm0 2a3 3 0 0 1 3 3v3H9V7a3 3 0 0 1 3-3zm0 9a1.6 1.6 0 0 1 .9 2.93V18a.9.9 0 0 1-1.8 0v-1.07A1.6 1.6 0 0 1 12 13z"/></svg>
             </span>
           </span>
         </button>
       </div>
 
-      <button class="request-refresh" data-name="의뢰 갱신">
-        <span>↻</span>
-        <b>의뢰 갱신</b>
-        <img src="image/ui_top_icon_gem.png" alt="" />
-        <em>20</em>
+      <button class="request-refresh" data-name="의뢰 갱신" aria-label="의뢰 갱신">
+        <img src="image/ui_request_refresh_full.png" alt="" aria-hidden="true" />
       </button>
     </section>
   </div>
