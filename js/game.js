@@ -2,6 +2,8 @@
   const IDLE_SRC = "image/luna_game_broom_pose_side.png";
   const MOVE_SRC = "image/luna_game_broom_pose_climb_dive_cat.png";
   const HIT_SRC = "image/luna_game_broom_pose_hit_cat.png";
+  const DESTINATION_BG_SRC = "image/play_background_skycity_panorama2.png";
+  const GAME_BGM_SRC = "audio/Cake Before Sunrise.mp3";
   const CROW_SRC = "image/game_obstacle_crow.png";
   const ITEM_TYPES = [
     { type: "star", src: "image/game_item_star.png", label: "별사탕" },
@@ -15,10 +17,27 @@
   const PACKAGE_DAMAGE = 12;
   const HIT_DURATION = 0.7;
   const INVINCIBLE_DURATION = 1.12;
+  const DELIVERY_TIME_LIMIT = 50;
+  const DELIVERY_SPEED = 26;
+  const DASH_MP_COST = 25;
+  const DASH_DURATION = 2.8;
+  const DASH_COOLDOWN = 5;
+  const DASH_SPEED_MULTIPLIER = 1.75;
+  const SPAWN_STOP_BEFORE_ARRIVAL = 1;
+  const SHIELD_MP_COST = 35;
+  const SHIELD_DURATION = 4;
+  const SHIELD_COOLDOWN = 8;
+  const destinationBackgroundPreload = new Image();
+  destinationBackgroundPreload.src = DESTINATION_BG_SRC;
+  const gameBgm = new Audio(encodeURI(GAME_BGM_SRC));
+  gameBgm.loop = true;
+  gameBgm.volume = 0;
+  gameBgm.preload = "auto";
 
   const state = {
     running: false,
     paused: false,
+    phase: "idle",
     x: 11,
     y: 39,
     xVelocity: 0,
@@ -28,24 +47,33 @@
     lastTime: 0,
     hp: 100,
     mp: 100,
-    timeLeft: 120,
+    timeLeft: DELIVERY_TIME_LIMIT,
     distance: 0,
     totalDistance: 1200,
     packageCondition: 100,
-    speed: 105,
+    speed: DELIVERY_SPEED,
     bgX: 0,
     runId: 0,
     dragStartX: 0,
     dragPointerId: null,
+    controlPointerId: null,
     obstacles: [],
     items: [],
     nextCrowIn: 0,
     nextItemIn: 0,
     hitTime: 0,
     invincibleTime: 0,
+    dashTime: 0,
+    dashCooldown: 0,
+    dashTrailIn: 0,
+    shieldTime: 0,
+    shieldCooldown: 0,
+    shieldCharges: 0,
   };
 
   const els = {};
+  let effectAudioContext = null;
+  let gameBgmFadeId = null;
 
   function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
@@ -59,6 +87,8 @@
     els.down = document.querySelector(".play-down");
     els.back = document.querySelector(".play-back");
     els.front = document.querySelector(".play-front");
+    els.skill = document.querySelector(".play-skill");
+    els.shield = document.querySelector(".play-shield");
     els.bg = document.querySelector(".play-bg-panorama");
     els.objects = document.querySelector(".play-object-layer");
     els.hp = document.querySelector(".play-hp");
@@ -69,9 +99,12 @@
     els.distance = document.querySelector(".play-distance-value");
     els.pause = document.querySelector(".play-pause");
     els.progress = document.querySelector(".play-progress");
+    els.countdown = document.querySelector(".play-countdown");
+    els.countdownText = document.querySelector(".play-countdown-text");
   }
 
   function setDirection(direction) {
+    if (state.phase === "arrival" || state.phase === "countdown") return;
     state.direction = direction;
     if (!els.luna) return;
     if (state.hitTime > 0) {
@@ -83,6 +116,7 @@
   }
 
   function setHorizontalDirection(direction) {
+    if (state.phase === "arrival" || state.phase === "countdown") return;
     state.horizontalDirection = direction;
     syncHorizontalButtonImages();
   }
@@ -111,6 +145,106 @@
   function syncHorizontalButtonImages() {
     setControlButtonImage(els.back, state.horizontalDirection === -1);
     setControlButtonImage(els.front, state.horizontalDirection === 1);
+  }
+
+  function updateSkillButton(button, cooldown, maxCooldown, cost, active) {
+    if (!button) return;
+    const isCooling = cooldown > 0.05;
+    const unavailable = state.phase === "flying" && state.mp < cost && !isCooling && !active;
+    button.classList.toggle("is-cooling", isCooling);
+    button.classList.toggle("is-unavailable", unavailable);
+    button.classList.toggle("is-skill-active", active);
+    button.style.setProperty("--cooldown-progress", `${clamp(cooldown / maxCooldown, 0, 1) * 100}%`);
+    button.dataset.cooldown = isCooling ? String(Math.ceil(cooldown)) : "";
+  }
+
+  function updateSkillButtons() {
+    updateSkillButton(els.skill, state.dashCooldown, DASH_COOLDOWN, DASH_MP_COST, state.dashTime > 0);
+    updateSkillButton(els.shield, state.shieldCooldown, SHIELD_COOLDOWN, SHIELD_MP_COST, state.shieldCharges > 0);
+  }
+
+  function resetSkillState() {
+    state.dashTime = 0;
+    state.dashCooldown = 0;
+    state.dashTrailIn = 0;
+    state.shieldTime = 0;
+    state.shieldCooldown = 0;
+    state.shieldCharges = 0;
+    els.luna?.classList.remove("is-dashing", "is-shielded", "is-shield-break");
+    els.stage?.classList.remove("is-dash-active");
+    updateSkillButtons();
+  }
+
+  function canUseSkill(cost, cooldown) {
+    return state.running && !state.paused && state.phase === "flying" && cooldown <= 0 && state.mp >= cost;
+  }
+
+  function useDash() {
+    if (!canUseSkill(DASH_MP_COST, state.dashCooldown)) return;
+    state.mp = Math.max(0, state.mp - DASH_MP_COST);
+    state.dashTime = DASH_DURATION;
+    state.dashCooldown = DASH_COOLDOWN;
+    state.dashTrailIn = 0;
+    state.x = Math.min(RIGHT_BOUNDARY, state.x + 9);
+    state.xVelocity = Math.max(state.xVelocity, 24);
+    els.luna?.classList.add("is-dashing");
+    els.stage?.classList.add("is-dash-active");
+    createDashBurst();
+    playSkillSound("dash");
+    applyLunaPose();
+    updateHud();
+  }
+
+  function useShield() {
+    if (!canUseSkill(SHIELD_MP_COST, state.shieldCooldown)) return;
+    state.mp = Math.max(0, state.mp - SHIELD_MP_COST);
+    state.shieldTime = SHIELD_DURATION;
+    state.shieldCooldown = SHIELD_COOLDOWN;
+    state.shieldCharges = 1;
+    els.luna?.classList.remove("is-shield-break");
+    els.luna?.classList.add("is-shielded");
+    playSkillSound("shield");
+    updateHud();
+  }
+
+  function breakShield() {
+    if (state.shieldCharges <= 0) return false;
+    state.shieldCharges = 0;
+    state.shieldTime = 0;
+    state.invincibleTime = 0.45;
+    if (els.luna) {
+      els.luna.classList.remove("is-shielded");
+      els.luna.classList.add("is-shield-break");
+      window.setTimeout(() => els.luna?.classList.remove("is-shield-break"), 420);
+    }
+    playSkillSound("shieldBreak");
+    updateSkillButtons();
+    return true;
+  }
+
+  function updateSkillTimers(dt) {
+    const hadDash = state.dashTime > 0;
+    const hadShield = state.shieldTime > 0 && state.shieldCharges > 0;
+    state.dashTime = Math.max(0, state.dashTime - dt);
+    state.dashCooldown = Math.max(0, state.dashCooldown - dt);
+    state.dashTrailIn = Math.max(0, state.dashTrailIn - dt);
+    state.shieldTime = Math.max(0, state.shieldTime - dt);
+    state.shieldCooldown = Math.max(0, state.shieldCooldown - dt);
+
+    if (state.dashTime > 0 && state.dashTrailIn === 0) {
+      createDashTrail();
+      state.dashTrailIn = 0.055;
+    }
+
+    if (hadDash && state.dashTime === 0) {
+      els.luna?.classList.remove("is-dashing");
+      els.stage?.classList.remove("is-dash-active");
+    }
+    if (hadShield && state.shieldTime === 0) {
+      state.shieldCharges = 0;
+      els.luna?.classList.remove("is-shielded");
+    }
+    updateSkillButtons();
   }
 
   function syncPauseButtonImage() {
@@ -160,22 +294,62 @@
     });
   }
 
+  function getMovementControlAt(clientX, clientY) {
+    const target = document.elementFromPoint(clientX, clientY);
+    return target?.closest?.(".play-up, .play-down, .play-back, .play-front") || null;
+  }
+
+  function updateMovementFromPointer(event) {
+    if (state.controlPointerId !== event.pointerId) return;
+    const control = getMovementControlAt(event.clientX, event.clientY);
+
+    if (control?.classList.contains("play-up")) {
+      setDirection(-1);
+      setHorizontalDirection(0);
+      return;
+    }
+    if (control?.classList.contains("play-down")) {
+      setDirection(1);
+      setHorizontalDirection(0);
+      return;
+    }
+    if (control?.classList.contains("play-back")) {
+      setDirection(0);
+      setHorizontalDirection(-1);
+      return;
+    }
+    if (control?.classList.contains("play-front")) {
+      setDirection(0);
+      setHorizontalDirection(1);
+      return;
+    }
+
+    setDirection(0);
+    setHorizontalDirection(0);
+  }
+
+  function stopMovementPointer(event) {
+    if (state.controlPointerId !== event.pointerId) return;
+    state.controlPointerId = null;
+    setDirection(0);
+    setHorizontalDirection(0);
+  }
+
   function bindHoldButton(button, direction) {
     if (!button) return;
 
     const start = (event) => {
       event.preventDefault();
-      setDirection(direction);
-    };
-    const stop = () => {
-      if (state.direction === direction) setDirection(0);
+      state.controlPointerId = event.pointerId;
+      button.setPointerCapture?.(event.pointerId);
+      updateMovementFromPointer(event);
     };
 
     button.addEventListener("pointerdown", start);
-    button.addEventListener("pointerup", stop);
-    button.addEventListener("pointercancel", stop);
-    button.addEventListener("pointerleave", stop);
-    button.addEventListener("lostpointercapture", stop);
+    button.addEventListener("pointermove", updateMovementFromPointer);
+    button.addEventListener("pointerup", stopMovementPointer);
+    button.addEventListener("pointercancel", stopMovementPointer);
+    button.addEventListener("lostpointercapture", stopMovementPointer);
   }
 
   function bindHorizontalHoldButton(button, direction) {
@@ -183,17 +357,21 @@
 
     const start = (event) => {
       event.preventDefault();
-      setHorizontalDirection(direction);
-    };
-    const stop = () => {
-      if (state.horizontalDirection === direction) setHorizontalDirection(0);
+      state.controlPointerId = event.pointerId;
+      button.setPointerCapture?.(event.pointerId);
+      updateMovementFromPointer(event);
     };
 
     button.addEventListener("pointerdown", start);
-    button.addEventListener("pointerup", stop);
-    button.addEventListener("pointercancel", stop);
-    button.addEventListener("pointerleave", stop);
-    button.addEventListener("lostpointercapture", stop);
+    button.addEventListener("pointermove", updateMovementFromPointer);
+    button.addEventListener("pointerup", stopMovementPointer);
+    button.addEventListener("pointercancel", stopMovementPointer);
+    button.addEventListener("lostpointercapture", stopMovementPointer);
+  }
+
+  function bindSkillButtons() {
+    els.skill?.addEventListener("click", useDash);
+    els.shield?.addEventListener("click", useShield);
   }
 
   function bindPauseButton() {
@@ -203,6 +381,7 @@
       state.paused = !state.paused;
       state.direction = 0;
       state.horizontalDirection = 0;
+      state.controlPointerId = null;
       syncDirectionButtonImages();
       syncHorizontalButtonImages();
       syncPauseButtonImage();
@@ -225,6 +404,11 @@
       if (event.key === "ArrowDown" || event.key.toLowerCase() === "s") setDirection(1);
       if (event.key === "ArrowLeft" || event.key.toLowerCase() === "a") setHorizontalDirection(-1);
       if (event.key === "ArrowRight" || event.key.toLowerCase() === "d") setHorizontalDirection(1);
+      if (event.code === "Space") {
+        event.preventDefault();
+        useDash();
+      }
+      if (event.key === "Shift") useShield();
     });
 
     window.addEventListener("keyup", (event) => {
@@ -300,6 +484,13 @@
     state.nextItemIn = randomBetween(1.45, 2.35) - progress * 0.2;
   }
 
+  function isNearArrival() {
+    const speedMultiplier = state.dashTime > 0 ? DASH_SPEED_MULTIPLIER : 1;
+    const currentSpeed = Math.max(1, state.speed * speedMultiplier);
+    const secondsToArrival = (state.totalDistance - state.distance) / currentSpeed;
+    return secondsToArrival <= SPAWN_STOP_BEFORE_ARRIVAL;
+  }
+
   function clearWorldObjects() {
     state.obstacles.forEach((obstacle) => obstacle.el?.remove());
     state.items.forEach((item) => item.el?.remove());
@@ -365,6 +556,162 @@
     object.el.style.top = `${object.y}%`;
   }
 
+  function createCollectEffect(item) {
+    if (!els.objects) return;
+
+    const effect = document.createElement("div");
+    effect.className = "play-collect-effect";
+    effect.style.left = `${item.x}%`;
+    effect.style.top = `${item.y}%`;
+
+    const score = document.createElement("span");
+    score.className = "play-collect-score";
+    score.textContent = "+10";
+    effect.appendChild(score);
+
+    for (let index = 0; index < 8; index += 1) {
+      const spark = document.createElement("i");
+      spark.className = "play-collect-spark";
+      const angle = (Math.PI * 2 * index) / 8 + randomBetween(-0.22, 0.22);
+      const distance = randomBetween(18, 34);
+      spark.style.setProperty("--spark-x", `${Math.cos(angle) * distance}px`);
+      spark.style.setProperty("--spark-y", `${Math.sin(angle) * distance}px`);
+      spark.style.setProperty("--spark-delay", `${index * 18}ms`);
+      effect.appendChild(spark);
+    }
+
+    els.objects.appendChild(effect);
+    window.setTimeout(() => effect.remove(), 760);
+  }
+
+  function createDashBurst() {
+    if (!els.objects) return;
+
+    const burst = document.createElement("div");
+    burst.className = "play-dash-burst";
+    burst.style.left = `${state.x + 4}%`;
+    burst.style.top = `${state.y}%`;
+    els.objects.appendChild(burst);
+    window.setTimeout(() => burst.remove(), 620);
+  }
+
+  function createDashTrail() {
+    if (!els.objects) return;
+
+    const trail = document.createElement("div");
+    trail.className = "play-dash-trail";
+    trail.style.left = `${state.x - 6}%`;
+    trail.style.top = `${state.y}%`;
+    trail.style.setProperty("--trail-y", `${randomBetween(-8, 8)}px`);
+    els.objects.appendChild(trail);
+    window.setTimeout(() => trail.remove(), 520);
+  }
+
+  function createObstacleBreakEffect(obstacle) {
+    if (!els.objects) return;
+
+    const effect = document.createElement("div");
+    effect.className = "play-obstacle-break";
+    effect.style.left = `${obstacle.x}%`;
+    effect.style.top = `${obstacle.y}%`;
+
+    for (let index = 0; index < 10; index += 1) {
+      const spark = document.createElement("i");
+      spark.className = "play-obstacle-break-spark";
+      const angle = (Math.PI * 2 * index) / 10 + randomBetween(-0.16, 0.16);
+      const distance = randomBetween(16, 38);
+      spark.style.setProperty("--spark-x", `${Math.cos(angle) * distance}px`);
+      spark.style.setProperty("--spark-y", `${Math.sin(angle) * distance}px`);
+      spark.style.setProperty("--spark-delay", `${index * 12}ms`);
+      effect.appendChild(spark);
+    }
+
+    els.objects.appendChild(effect);
+    window.setTimeout(() => effect.remove(), 620);
+  }
+
+  function playCollectSound(item) {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+
+    try {
+      effectAudioContext ||= new AudioContext();
+      const now = effectAudioContext.currentTime;
+      const oscillator = effectAudioContext.createOscillator();
+      const gain = effectAudioContext.createGain();
+      const baseFrequency = item.type === "hourglass" ? 780 : item.type === "potion" ? 660 : 880;
+
+      oscillator.type = "sine";
+      oscillator.frequency.setValueAtTime(baseFrequency, now);
+      oscillator.frequency.exponentialRampToValueAtTime(baseFrequency * 1.45, now + 0.11);
+
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.12, now + 0.018);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+
+      oscillator.connect(gain);
+      gain.connect(effectAudioContext.destination);
+      oscillator.start(now);
+      oscillator.stop(now + 0.24);
+    } catch (error) {
+      console.warn("[아이템 획득 효과음 실패]", error);
+    }
+  }
+
+  function playSkillSound(kind) {
+    if (kind === "dash") {
+      playTone(520, 1120, 0.13, 0.28, "triangle");
+      window.setTimeout(() => playTone(980, 1480, 0.08, 0.14, "sine"), 50);
+      return;
+    }
+    if (kind === "dashBreak") {
+      playTone(900, 1480, 0.13, 0.16, "triangle");
+      window.setTimeout(() => playTone(1320, 720, 0.075, 0.13, "sine"), 42);
+      return;
+    }
+    if (kind === "shield") {
+      playTone(420, 780, 0.1, 0.26, "sine");
+      return;
+    }
+    if (kind === "shieldBreak") {
+      playTone(760, 320, 0.14, 0.24, "triangle");
+      return;
+    }
+    if (kind === "hit") {
+      playTone(180, 92, 0.16, 0.2, "sawtooth");
+      window.setTimeout(() => playTone(98, 70, 0.1, 0.16, "square"), 36);
+    }
+  }
+
+  function playTone(frequency, endFrequency, volume, duration, type) {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+
+    try {
+      effectAudioContext ||= new AudioContext();
+      const now = effectAudioContext.currentTime;
+      const oscillator = effectAudioContext.createOscillator();
+      const gain = effectAudioContext.createGain();
+      const safeVolume = Math.max(0.0001, volume);
+      const safeDuration = Math.max(0.04, duration);
+
+      oscillator.type = type;
+      oscillator.frequency.setValueAtTime(frequency, now);
+      oscillator.frequency.exponentialRampToValueAtTime(Math.max(1, endFrequency), now + safeDuration * 0.62);
+
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(safeVolume, now + 0.014);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + safeDuration);
+
+      oscillator.connect(gain);
+      gain.connect(effectAudioContext.destination);
+      oscillator.start(now);
+      oscillator.stop(now + safeDuration + 0.02);
+    } catch (error) {
+      console.warn("[효과음 재생 실패]", error);
+    }
+  }
+
   function isCollidingWithLuna(obstacle) {
     if (!els.luna || !obstacle.el) return false;
 
@@ -404,6 +751,8 @@
   function collectItem(item) {
     if (item.collected) return;
     item.collected = true;
+    createCollectEffect(item);
+    playCollectSound(item);
     item.el.classList.add("is-collected");
 
     if (item.type === "star") {
@@ -428,6 +777,7 @@
 
   function hitLuna() {
     if (state.invincibleTime > 0) return;
+    if (breakShield()) return;
 
     state.hp = Math.max(0, state.hp - CROW_DAMAGE);
     state.packageCondition = Math.max(0, state.packageCondition - PACKAGE_DAMAGE);
@@ -435,6 +785,7 @@
     state.hitTime = HIT_DURATION;
     state.velocity *= -0.28;
     state.xVelocity = Math.max(state.xVelocity, 12);
+    playSkillSound("hit");
 
     if (els.luna) {
       els.luna.src = HIT_SRC;
@@ -453,7 +804,7 @@
   function updateObstacles(dt) {
     state.nextCrowIn -= dt;
     if (state.nextCrowIn <= 0) {
-      spawnCrow();
+      if (!isNearArrival()) spawnCrow();
       scheduleNextCrow();
     }
 
@@ -465,6 +816,12 @@
 
       if (!obstacle.hit && isCollidingWithLuna(obstacle)) {
         obstacle.hit = true;
+        if (state.dashTime > 0) {
+          createObstacleBreakEffect(obstacle);
+          playSkillSound("dashBreak");
+          obstacle.el.remove();
+          return;
+        }
         obstacle.el.remove();
         hitLuna();
       }
@@ -480,7 +837,7 @@
   function updateItems(dt) {
     state.nextItemIn -= dt;
     if (state.nextItemIn <= 0) {
-      spawnItem();
+      if (!isNearArrival()) spawnItem();
       scheduleNextItem();
     }
 
@@ -520,6 +877,24 @@
     if (els.bg) els.bg.style.transform = `translateX(${x}px)`;
   }
 
+  function resetPlayBackground() {
+    if (!els.stage) return;
+    els.stage.classList.remove("is-destination");
+    els.stage.style.backgroundImage = "";
+    els.stage.style.backgroundPosition = "";
+    els.stage.style.removeProperty("--play-bg-x");
+    if (els.screen) els.screen.classList.remove("is-fading");
+  }
+
+  function setDestinationBackground() {
+    if (!els.stage) return;
+    els.stage.classList.add("is-destination");
+    els.stage.style.backgroundImage = `url("${DESTINATION_BG_SRC}")`;
+    els.stage.style.backgroundPosition = "right center";
+    els.stage.style.setProperty("--play-bg-x", "0px");
+    if (els.bg) els.bg.style.transform = "translateX(0)";
+  }
+
   function updateHud() {
     const progress = clamp((state.distance / state.totalDistance) * 100, 0, 100);
     const hp = clamp(state.hp, 0, 100);
@@ -531,21 +906,213 @@
     if (els.timer) els.timer.textContent = formatTime(state.timeLeft);
     if (els.distance) els.distance.textContent = `${Math.ceil(state.packageCondition)}%`;
     if (els.progress) els.progress.style.setProperty("--progress", `${progress}%`);
+    updateSkillButtons();
   }
 
   function endGame(result) {
     state.running = false;
     state.paused = false;
+    state.phase = "ended";
     state.direction = 0;
     state.hitTime = 0;
     state.invincibleTime = 0;
+    state.controlPointerId = null;
+    resetSkillState();
     syncPauseButtonImage();
+    stopGameBgm();
     clearWorldObjects();
     if (els.luna) {
-      els.luna.classList.remove("is-hit");
+      els.luna.classList.remove("is-hit", "is-dashing", "is-shielded", "is-shield-break");
       els.luna.src = result === "success" ? "image/luna_game_success_cat.png" : IDLE_SRC;
     }
     console.log(`[게임 종료] ${result}`, {
+      request: document.body.dataset.selectedRequest,
+      hp: Math.round(state.hp),
+      mp: Math.round(state.mp),
+      packageCondition: Math.round(state.packageCondition),
+      timeLeft: Math.ceil(state.timeLeft),
+      distance: Math.round(state.distance),
+    });
+  }
+
+  function animateLunaTo(targetX, targetY, duration) {
+    const startX = state.x;
+    const startY = state.y;
+    const startedAt = performance.now();
+    state.direction = 0;
+    state.horizontalDirection = 1;
+    if (els.luna) {
+      els.luna.classList.remove("is-hit");
+      els.luna.src = MOVE_SRC;
+    }
+    syncDirectionButtonImages();
+    syncHorizontalButtonImages();
+
+    return new Promise((resolve) => {
+      const step = (now) => {
+        if (state.phase !== "arrival") {
+          resolve();
+          return;
+        }
+
+        const progress = clamp((now - startedAt) / duration, 0, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        state.x = startX + (targetX - startX) * eased;
+        state.y = startY + (targetY - startY) * eased;
+        applyLunaPose();
+
+        if (progress < 1) {
+          requestAnimationFrame(step);
+          return;
+        }
+
+        resolve();
+      };
+
+      requestAnimationFrame(step);
+    });
+  }
+
+  function wait(ms) {
+    return new Promise((resolve) => window.setTimeout(resolve, ms));
+  }
+
+  function stopMainBgm() {
+    if (!window.__bgm) return;
+    window.__bgm.pause();
+  }
+
+  function fadeGameBgmTo(targetVolume, ms) {
+    window.clearInterval(gameBgmFadeId);
+    const steps = 32;
+    const startVolume = gameBgm.volume;
+    const stepMs = ms / steps;
+    let step = 0;
+
+    gameBgmFadeId = window.setInterval(() => {
+      step += 1;
+      const progress = step / steps;
+      gameBgm.volume = startVolume + (targetVolume - startVolume) * progress;
+      if (step >= steps) {
+        gameBgm.volume = targetVolume;
+        window.clearInterval(gameBgmFadeId);
+        gameBgmFadeId = null;
+      }
+    }, stepMs);
+  }
+
+  function prepareGameBgm() {
+    window.clearInterval(gameBgmFadeId);
+    gameBgmFadeId = null;
+    gameBgm.pause();
+    gameBgm.currentTime = 0;
+    gameBgm.volume = 0;
+
+    const playPromise = gameBgm.play();
+    if (playPromise && typeof playPromise.catch === "function") {
+      playPromise.catch((error) => {
+        console.warn("[게임 BGM 준비 실패]", error);
+      });
+    }
+  }
+
+  function startGameBgm() {
+    gameBgm.currentTime = 0;
+    const playPromise = gameBgm.play();
+    if (playPromise && typeof playPromise.then === "function") {
+      playPromise
+        .then(() => fadeGameBgmTo(0.46, 900))
+        .catch((error) => {
+          console.warn("[게임 BGM 재생 실패]", error);
+        });
+      return;
+    }
+    fadeGameBgmTo(0.46, 900);
+  }
+
+  function stopGameBgm() {
+    window.clearInterval(gameBgmFadeId);
+    gameBgmFadeId = null;
+    gameBgm.pause();
+    gameBgm.currentTime = 0;
+    gameBgm.volume = 0;
+  }
+
+  async function runCountdown(activeRunId) {
+    if (!els.countdown || !els.countdownText) return true;
+
+    state.phase = "countdown";
+    state.running = false;
+    state.direction = 0;
+    state.horizontalDirection = 0;
+    syncDirectionButtonImages();
+    syncHorizontalButtonImages();
+
+    const steps = ["3", "2", "1", "시작!"];
+    els.countdown.classList.add("is-visible");
+    els.countdown.setAttribute("aria-hidden", "false");
+
+    for (const step of steps) {
+      if (state.runId !== activeRunId || state.phase !== "countdown") {
+        els.countdown.classList.remove("is-visible");
+        els.countdownText.classList.remove("is-popping");
+        els.countdown.setAttribute("aria-hidden", "true");
+        return false;
+      }
+
+      els.countdownText.textContent = step;
+      els.countdownText.classList.remove("is-popping", "is-start");
+      void els.countdownText.offsetWidth;
+      els.countdownText.classList.add("is-popping");
+      els.countdownText.classList.toggle("is-start", step === "시작!");
+      await wait(step === "시작!" ? 620 : 760);
+    }
+
+    els.countdown.classList.remove("is-visible");
+    els.countdownText.classList.remove("is-popping", "is-start");
+    els.countdown.setAttribute("aria-hidden", "true");
+    return state.runId === activeRunId && state.phase === "countdown";
+  }
+
+  async function startArrivalSequence() {
+    if (state.phase === "arrival") return;
+    state.phase = "arrival";
+    state.paused = false;
+    state.direction = 0;
+    state.horizontalDirection = 0;
+    state.velocity = 0;
+    state.xVelocity = 0;
+    state.distance = state.totalDistance;
+    state.timeLeft = Math.max(0, state.timeLeft);
+    resetSkillState();
+    updateHud();
+
+    await animateLunaTo(112, 42, 900);
+    if (state.phase !== "arrival") return;
+
+    els.screen?.classList.add("is-fading");
+    await wait(430);
+    if (state.phase !== "arrival") return;
+
+    clearWorldObjects();
+    setDestinationBackground();
+    state.x = -12;
+    state.y = 47;
+    applyLunaPose();
+    await wait(120);
+    els.screen?.classList.remove("is-fading");
+
+    await animateLunaTo(55, 47, 1700);
+    if (state.phase !== "arrival") return;
+
+    state.running = false;
+    state.paused = false;
+    state.direction = 0;
+    state.horizontalDirection = 0;
+    syncDirectionButtonImages();
+    syncHorizontalButtonImages();
+    if (els.luna) els.luna.src = IDLE_SRC;
+    console.log("[도착 연출 완료]", {
       request: document.body.dataset.selectedRequest,
       hp: Math.round(state.hp),
       mp: Math.round(state.mp),
@@ -583,8 +1150,10 @@
     }
 
     state.timeLeft = Math.max(0, state.timeLeft - dt);
-    state.distance = Math.min(state.totalDistance, state.distance + state.speed * dt);
+    const speedMultiplier = state.dashTime > 0 ? DASH_SPEED_MULTIPLIER : 1;
+    state.distance = Math.min(state.totalDistance, state.distance + state.speed * speedMultiplier * dt);
 
+    updateSkillTimers(dt);
     updateHitState(dt);
     updateObstacles(dt);
     updateItems(dt);
@@ -593,11 +1162,15 @@
     updateHud();
 
     if (state.distance >= state.totalDistance) {
-      endGame(state.packageCondition > 0 ? "success" : "fail");
+      if (state.packageCondition > 0) {
+        startArrivalSequence();
+      } else {
+        endGame("fail");
+      }
       return;
     }
 
-    if (state.timeLeft <= 0 || state.hp <= 0 || state.packageCondition <= 0 || state.x <= LEFT_BOUNDARY) {
+    if (state.timeLeft <= 0 || state.hp <= 0 || state.packageCondition <= 0) {
       endGame("fail");
       return;
     }
@@ -607,44 +1180,57 @@
     });
   }
 
-  function start(requestName) {
+  async function start(requestName) {
     cacheElements();
     requestLandscapeMode();
-    state.running = true;
+    stopMainBgm();
+    prepareGameBgm();
+    state.running = false;
     state.paused = false;
+    state.phase = "countdown";
     state.x = 11;
     state.y = 39;
     state.xVelocity = 0;
     state.velocity = 0;
     state.horizontalDirection = 0;
     state.direction = 0;
+    state.controlPointerId = null;
     syncDirectionButtonImages();
     syncHorizontalButtonImages();
     syncPauseButtonImage();
     state.hp = 100;
     state.mp = 100;
-    state.timeLeft = 120;
+    state.timeLeft = DELIVERY_TIME_LIMIT;
     state.distance = 0;
     state.totalDistance = 1200;
     state.packageCondition = 100;
-    state.speed = 105;
+    state.speed = DELIVERY_SPEED;
     state.bgX = 0;
     state.hitTime = 0;
     state.invincibleTime = 0;
+    resetSkillState();
     clearWorldObjects();
+    resetPlayBackground();
     scheduleNextCrow();
     scheduleNextItem();
     state.runId += 1;
-    state.lastTime = performance.now();
+    const activeRunId = state.runId;
     document.body.dataset.selectedRequest = requestName || "";
     if (els.luna) {
-      els.luna.classList.remove("is-hit");
+      els.luna.classList.remove("is-hit", "is-dashing", "is-shielded", "is-shield-break");
       els.luna.src = IDLE_SRC;
       applyLunaPose();
     }
     applyBackground();
     updateHud();
-    const activeRunId = state.runId;
+
+    const shouldStart = await runCountdown(activeRunId);
+    if (!shouldStart) return;
+
+    state.running = true;
+    state.phase = "flying";
+    state.lastTime = performance.now();
+    startGameBgm();
     requestAnimationFrame((now) => {
       if (state.running && !state.paused && state.runId === activeRunId) tick(now);
     });
@@ -657,6 +1243,7 @@
     bindHoldButton(els.down, 1);
     bindHorizontalHoldButton(els.back, -1);
     bindHorizontalHoldButton(els.front, 1);
+    bindSkillButtons();
     bindPauseButton();
     bindKeyboardControls();
     bindStageDrag();

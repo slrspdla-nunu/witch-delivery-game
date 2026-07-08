@@ -446,16 +446,19 @@ body.game-ui .top-hud {
 .top-currency {
   position: absolute;
   top: 3.34%;
-  width: 25.55%;
+  width: 25.93%;
   aspect-ratio: 884 / 279;
   z-index: 1;
+  color: #ffe4a3;
+  font-family: 'Ridibatang', "Noto Sans KR", "Malgun Gothic", serif;
+  text-shadow: 0 1px 2px rgba(45, 20, 35, 0.95);
   transform: scale(calc(var(--hover-scale, 1) * var(--press-scale, 1)));
   transition: transform 0.12s ease, filter 0.12s ease;
   filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.55));
 }
 
 .top-coin { left: 45.85%; }
-.top-gem { left: 73.0%; }
+.top-gem { left: 72.62%; }
 
 .top-currency-panel,
 .top-currency-icon {
@@ -478,7 +481,7 @@ body.game-ui .top-hud {
   object-fit: contain;
 }
 
-.top-currency-value {
+.top-currency span {
   position: absolute;
   left: 30%;
   top: 0;
@@ -486,20 +489,16 @@ body.game-ui .top-hud {
   height: 100%;
   display: grid;
   place-items: center;
-  color: #ffe4a3;
   font-size: clamp(9px, 3.25vw, 14px);
   font-weight: 800;
-  line-height: 1;
 }
 
-.top-currency-plus {
+.top-currency b {
   position: absolute;
-  right: 10%;
-  top: 43%;
+  right: 12%;
+  top: 45%;
   transform: translateY(-50%);
-  color: #ffd46f;
-  font: 900 clamp(9px, 3.05vw, 13px) / 1 "Noto Sans KR", "Malgun Gothic", sans-serif;
-  text-shadow: 0 1px 2px rgba(45, 20, 35, 0.95);
+  font: 900 clamp(9px, 3.05vw, 13px) / 1 "Noto Sans KR", sans-serif;
   pointer-events: none;
 }
 
@@ -682,10 +681,10 @@ body.play-view .request-screen {
   opacity: 0;
   pointer-events: none;
   overflow: hidden;
+  isolation: isolate;
   color: #302942;
   font-family: 'Ridibatang', "Noto Sans KR", "Malgun Gothic", serif;
   background:
-    linear-gradient(180deg, rgba(20, 17, 48, 0.82) 0%, rgba(30, 24, 66, 0.62) 40%, rgba(12, 10, 30, 0.9) 100%),
     url("image/background_clean_generated_ext.png") center / cover no-repeat,
     #14112f;
 }
@@ -791,8 +790,8 @@ body.request-view .request-screen {
 
 .request-currency b {
   position: absolute;
-  right: 10%;
-  top: 43%;
+  right: 12%;
+  top: 45%;
   transform: translateY(-50%);
   font: 900 clamp(9px, 3.05vw, 13px) / 1 "Noto Sans KR", sans-serif;
 }
@@ -1027,6 +1026,77 @@ body.request-view .request-screen {
   background: #11102f;
 }
 
+.play-screen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 90;
+  background: #05030d;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.42s ease;
+}
+
+.play-screen.is-fading::after {
+  opacity: 1;
+}
+
+.play-countdown {
+  position: absolute;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  pointer-events: none;
+}
+
+body.request-view::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 11;
+  background:
+    linear-gradient(180deg, rgba(20, 17, 48, 0.86) 0%, rgba(30, 24, 66, 0.68) 40%, rgba(12, 10, 30, 0.92) 100%);
+  pointer-events: none;
+}
+
+.play-countdown-text {
+  position: relative;
+  z-index: 1;
+  color: #ffe9ae;
+  font-family: 'Ridibatang', "Noto Sans KR", "Malgun Gothic", serif;
+  font-size: clamp(72px, 15vw, 148px);
+  font-weight: 900;
+  line-height: 1;
+  text-shadow:
+    0 4px 4px rgba(39, 20, 36, 0.9),
+    0 0 14px rgba(255, 217, 100, 0.92),
+    0 0 34px rgba(255, 159, 57, 0.55);
+}
+
+.play-countdown::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at center, rgba(28, 20, 44, 0.18) 0 22%, rgba(5, 3, 13, 0.36) 64%, rgba(5, 3, 13, 0.48) 100%);
+  pointer-events: none;
+}
+
+.play-countdown.is-visible {
+  opacity: 1;
+}
+
+.play-countdown-text.is-popping {
+  animation: playCountdownPop 0.72s ease-out both;
+}
+
+.play-countdown-text.is-start {
+  font-size: clamp(58px, 11vw, 108px);
+  color: #fff1bf;
+}
+
 body.play-view .play-screen {
   display: block;
   pointer-events: auto;
@@ -1041,6 +1111,16 @@ body.play-view .play-screen {
   background-repeat: repeat-x;
   background-position: var(--play-bg-x, 0px) center;
   background-size: auto 100%;
+}
+
+.play-stage.is-destination {
+  background-repeat: no-repeat;
+  background-size: auto 100%;
+}
+
+.play-stage.is-dash-active .play-bg,
+.play-stage.is-dash-active .play-object-layer {
+  filter: brightness(1.16) saturate(1.18);
 }
 
 .play-bg {
@@ -1092,6 +1172,95 @@ body.play-view .play-screen {
   animation: itemCollect 0.14s ease-out forwards;
 }
 
+.play-collect-effect {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 4;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
+.play-collect-score {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  color: #fff2b9;
+  font-family: 'Ridibatang', "Noto Sans KR", "Malgun Gothic", serif;
+  font-size: clamp(16px, 2.8vw, 24px);
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+  text-shadow:
+    0 2px 2px rgba(55, 28, 46, 0.88),
+    0 0 9px rgba(255, 218, 103, 0.9);
+  animation: collectScoreFloat 0.72s ease-out forwards;
+}
+
+.play-collect-spark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: clamp(5px, 0.9vw, 8px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, #fff7c9 0 26%, #ffd76d 42%, rgba(255, 168, 66, 0) 72%);
+  box-shadow: 0 0 9px rgba(255, 226, 122, 0.92);
+  animation: collectSparkBurst 0.56s ease-out var(--spark-delay, 0ms) forwards;
+}
+
+.play-dash-burst,
+.play-dash-trail,
+.play-obstacle-break {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 3;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
+.play-dash-burst {
+  width: clamp(74px, 12vw, 132px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(255, 248, 194, 0.95) 0 10%, rgba(255, 215, 103, 0.58) 30%, rgba(255, 177, 61, 0.2) 52%, rgba(255, 177, 61, 0) 72%);
+  filter: drop-shadow(0 0 24px rgba(255, 223, 110, 0.98));
+  animation: dashBurst 0.7s ease-out forwards;
+}
+
+.play-dash-trail {
+  width: clamp(70px, 11vw, 120px);
+  height: clamp(14px, 2.3vw, 26px);
+  border-radius: 999px;
+  background:
+    linear-gradient(90deg, rgba(255, 195, 67, 0), rgba(255, 248, 188, 0.98) 50%, rgba(255, 197, 75, 0.34));
+  filter: blur(0.15px) drop-shadow(0 0 14px rgba(255, 217, 91, 0.95));
+  animation: dashTrail 0.56s ease-out forwards;
+}
+
+.play-obstacle-break {
+  width: 1px;
+  height: 1px;
+}
+
+.play-obstacle-break-spark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: clamp(6px, 1.05vw, 10px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, #fff8c8 0 28%, #ffc85f 52%, rgba(255, 169, 64, 0) 76%);
+  box-shadow: 0 0 14px rgba(255, 220, 98, 0.98);
+  animation: obstacleBreakSpark 0.64s ease-out var(--spark-delay, 0ms) forwards;
+}
+
 .play-canvas {
   position: absolute;
   inset: 0;
@@ -1116,6 +1285,26 @@ body.play-view .play-screen {
 
 .play-luna.is-hit {
   animation: lunaHitFlash 0.12s steps(2, end) infinite;
+}
+
+.play-luna.is-dashing {
+  animation: lunaSkillDash 0.22s ease-in-out infinite;
+  filter:
+    drop-shadow(0 7px 15px rgba(0, 0, 0, 0.5))
+    drop-shadow(0 0 22px rgba(255, 238, 144, 0.98))
+    drop-shadow(-22px 0 18px rgba(255, 180, 62, 0.62));
+}
+
+.play-luna.is-shielded {
+  animation: lunaShieldPulse 0.72s ease-in-out infinite;
+  filter:
+    drop-shadow(0 7px 15px rgba(0, 0, 0, 0.5))
+    drop-shadow(0 0 15px rgba(120, 212, 255, 0.9))
+    drop-shadow(0 0 26px rgba(113, 104, 255, 0.58));
+}
+
+.play-luna.is-shield-break {
+  animation: lunaShieldBreak 0.42s ease-out both;
 }
 
 .play-hud {
@@ -1448,11 +1637,53 @@ body.play-view .play-screen {
 .play-control-btn {
   width: var(--play-control-size);
   aspect-ratio: 1;
+  position: relative;
   filter: drop-shadow(0 3px 9px rgba(0, 0, 0, 0.48));
   transform: scale(calc(var(--hover-scale, 1) * var(--press-scale, 1)));
   transition: transform 0.12s ease, filter 0.12s ease;
   touch-action: manipulation;
   z-index: 1;
+}
+
+.play-control-btn::after {
+  content: "";
+  position: absolute;
+  inset: 12%;
+  border-radius: 50%;
+  background:
+    conic-gradient(rgba(12, 8, 26, 0.78) var(--cooldown-progress, 0%), rgba(12, 8, 26, 0.12) 0),
+    radial-gradient(circle, rgba(18, 11, 36, 0.72), rgba(18, 11, 36, 0.14) 62%, rgba(18, 11, 36, 0));
+  opacity: 0;
+  transition: opacity 0.14s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.play-control-btn::before {
+  content: attr(data-cooldown);
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -54%);
+  color: #fff4c2;
+  font: 900 clamp(15px, 2.4vw, 25px) / 1 "Noto Sans KR", sans-serif;
+  text-shadow: 0 2px 2px rgba(44, 21, 8, 0.88), 0 0 10px rgba(255, 210, 92, 0.65);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.play-control-btn.is-cooling::after,
+.play-control-btn.is-cooling::before {
+  opacity: 1;
+}
+
+.play-control-btn.is-unavailable {
+  filter: grayscale(0.62) brightness(0.72) drop-shadow(0 3px 9px rgba(0, 0, 0, 0.52));
+}
+
+.play-control-btn.is-skill-active {
+  filter: brightness(1.15) drop-shadow(0 0 13px rgba(255, 217, 103, 0.72));
 }
 
 .play-control-btn img {
@@ -1582,11 +1813,126 @@ button[data-name].is-pressing {
   50% { opacity: 0.38; }
 }
 
+@keyframes lunaSkillDash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.88; }
+}
+
+@keyframes lunaShieldPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.92; }
+}
+
+@keyframes lunaShieldBreak {
+  0% {
+    opacity: 1;
+    filter: drop-shadow(0 0 20px rgba(133, 224, 255, 0.95));
+  }
+  45% {
+    opacity: 0.72;
+    filter: drop-shadow(0 0 28px rgba(255, 238, 168, 0.9));
+  }
+  100% {
+    opacity: 1;
+    filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.5));
+  }
+}
+
 @keyframes itemCollect {
   to {
     opacity: 0;
     transform: translate(-50%, -50%) scale(1.28);
     filter: drop-shadow(0 0 12px rgba(255, 238, 155, 0.85));
+  }
+}
+
+@keyframes collectScoreFloat {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -56%) scale(0.72);
+  }
+  18% {
+    opacity: 1;
+    transform: translate(-50%, -86%) scale(1.08);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -148%) scale(0.92);
+  }
+}
+
+@keyframes collectSparkBurst {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.2);
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--spark-x)), calc(-50% + var(--spark-y))) scale(0.78);
+  }
+}
+
+@keyframes dashBurst {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.36);
+  }
+  24% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.82);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.5);
+  }
+}
+
+@keyframes dashTrail {
+  0% {
+    opacity: 0.92;
+    transform: translate(-50%, calc(-50% + var(--trail-y))) scaleX(0.9);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% - 34px), calc(-50% + var(--trail-y))) scaleX(1.18);
+  }
+}
+
+@keyframes obstacleBreakSpark {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.2);
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--spark-x)), calc(-50% + var(--spark-y))) scale(0.72);
+  }
+}
+
+@keyframes playCountdownPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.62);
+    filter: blur(2px);
+  }
+  28% {
+    opacity: 1;
+    transform: scale(1.12);
+    filter: blur(0);
+  }
+  72% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.92);
   }
 }
 
