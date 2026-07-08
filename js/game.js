@@ -1,9 +1,20 @@
 (function () {
   const IDLE_SRC = "image/luna_game_broom_pose_side.png";
   const MOVE_SRC = "image/luna_game_broom_pose_climb_dive_cat.png";
+  const HIT_SRC = "image/luna_game_broom_pose_hit_cat.png";
+  const CROW_SRC = "image/game_obstacle_crow.png";
+  const ITEM_TYPES = [
+    { type: "star", src: "image/game_item_star.png", label: "별사탕" },
+    { type: "hourglass", src: "image/game_item_hourglass.png", label: "모래시계" },
+    { type: "potion", src: "image/game_item_potion.png", label: "포션" },
+  ];
   const LEFT_BOUNDARY = 6;
   const RIGHT_BOUNDARY = 34;
   const PASSIVE_BACK_DRIFT = 12;
+  const CROW_DAMAGE = 18;
+  const PACKAGE_DAMAGE = 12;
+  const HIT_DURATION = 0.7;
+  const INVINCIBLE_DURATION = 1.12;
 
   const state = {
     running: false,
@@ -17,14 +28,21 @@
     lastTime: 0,
     hp: 100,
     mp: 100,
-    timeLeft: 90,
+    timeLeft: 120,
     distance: 0,
     totalDistance: 1200,
+    packageCondition: 100,
     speed: 105,
     bgX: 0,
     runId: 0,
     dragStartX: 0,
     dragPointerId: null,
+    obstacles: [],
+    items: [],
+    nextCrowIn: 0,
+    nextItemIn: 0,
+    hitTime: 0,
+    invincibleTime: 0,
   };
 
   const els = {};
@@ -42,6 +60,7 @@
     els.back = document.querySelector(".play-back");
     els.front = document.querySelector(".play-front");
     els.bg = document.querySelector(".play-bg-panorama");
+    els.objects = document.querySelector(".play-object-layer");
     els.hp = document.querySelector(".play-hp");
     els.mp = document.querySelector(".play-mp");
     els.hpValue = document.querySelector(".play-hp-value");
@@ -55,6 +74,10 @@
   function setDirection(direction) {
     state.direction = direction;
     if (!els.luna) return;
+    if (state.hitTime > 0) {
+      syncDirectionButtonImages();
+      return;
+    }
     els.luna.src = direction === 0 ? IDLE_SRC : MOVE_SRC;
     syncDirectionButtonImages();
   }
@@ -263,6 +286,222 @@
     els.luna.style.transform = `translateY(-50%) translateY(${drift}px) rotate(${targetAngle}deg)`;
   }
 
+  function randomBetween(min, max) {
+    return min + Math.random() * (max - min);
+  }
+
+  function scheduleNextCrow() {
+    const progress = clamp(state.distance / state.totalDistance, 0, 1);
+    state.nextCrowIn = randomBetween(1.8, 2.8) - progress * 0.42;
+  }
+
+  function scheduleNextItem() {
+    const progress = clamp(state.distance / state.totalDistance, 0, 1);
+    state.nextItemIn = randomBetween(1.45, 2.35) - progress * 0.2;
+  }
+
+  function clearWorldObjects() {
+    state.obstacles.forEach((obstacle) => obstacle.el?.remove());
+    state.items.forEach((item) => item.el?.remove());
+    state.obstacles = [];
+    state.items = [];
+    if (els.objects) els.objects.innerHTML = "";
+  }
+
+  function spawnCrow() {
+    if (!els.objects) return;
+
+    const img = document.createElement("img");
+    img.className = "play-obstacle play-obstacle-crow";
+    img.src = CROW_SRC;
+    img.alt = "";
+    img.setAttribute("aria-hidden", "true");
+
+    const obstacle = {
+      type: "crow",
+      x: 116,
+      y: randomBetween(24, 74),
+      speed: randomBetween(17, 22),
+      el: img,
+      hit: false,
+    };
+
+    els.objects.appendChild(img);
+    state.obstacles.push(obstacle);
+    applyObstaclePosition(obstacle);
+  }
+
+  function applyObstaclePosition(obstacle) {
+    obstacle.el.style.left = `${obstacle.x}%`;
+    obstacle.el.style.top = `${obstacle.y}%`;
+  }
+
+  function spawnItem() {
+    if (!els.objects) return;
+
+    const itemType = ITEM_TYPES[Math.floor(Math.random() * ITEM_TYPES.length)];
+    const img = document.createElement("img");
+    img.className = `play-item play-item-${itemType.type}`;
+    img.src = itemType.src;
+    img.alt = "";
+    img.setAttribute("aria-hidden", "true");
+
+    const item = {
+      type: itemType.type,
+      x: 112,
+      y: randomBetween(26, 72),
+      speed: randomBetween(13, 17),
+      el: img,
+      collected: false,
+    };
+
+    els.objects.appendChild(img);
+    state.items.push(item);
+    applyWorldObjectPosition(item);
+  }
+
+  function applyWorldObjectPosition(object) {
+    object.el.style.left = `${object.x}%`;
+    object.el.style.top = `${object.y}%`;
+  }
+
+  function isCollidingWithLuna(obstacle) {
+    if (!els.luna || !obstacle.el) return false;
+
+    const lunaRect = els.luna.getBoundingClientRect();
+    const obstacleRect = obstacle.el.getBoundingClientRect();
+    const lunaPaddingX = lunaRect.width * 0.225;
+    const lunaPaddingY = lunaRect.height * 0.19;
+    const obstaclePaddingX = obstacleRect.width * 0.175;
+    const obstaclePaddingY = obstacleRect.height * 0.21;
+
+    return !(
+      obstacleRect.right - obstaclePaddingX < lunaRect.left + lunaPaddingX ||
+      obstacleRect.left + obstaclePaddingX > lunaRect.right - lunaPaddingX ||
+      obstacleRect.bottom - obstaclePaddingY < lunaRect.top + lunaPaddingY ||
+      obstacleRect.top + obstaclePaddingY > lunaRect.bottom - lunaPaddingY
+    );
+  }
+
+  function isCollectingItem(item) {
+    if (!els.luna || !item.el) return false;
+
+    const lunaRect = els.luna.getBoundingClientRect();
+    const itemRect = item.el.getBoundingClientRect();
+    const lunaPaddingX = lunaRect.width * 0.18;
+    const lunaPaddingY = lunaRect.height * 0.15;
+    const itemPaddingX = itemRect.width * 0.04;
+    const itemPaddingY = itemRect.height * 0.04;
+
+    return !(
+      itemRect.right - itemPaddingX < lunaRect.left + lunaPaddingX ||
+      itemRect.left + itemPaddingX > lunaRect.right - lunaPaddingX ||
+      itemRect.bottom - itemPaddingY < lunaRect.top + lunaPaddingY ||
+      itemRect.top + itemPaddingY > lunaRect.bottom - lunaPaddingY
+    );
+  }
+
+  function collectItem(item) {
+    if (item.collected) return;
+    item.collected = true;
+    item.el.classList.add("is-collected");
+
+    if (item.type === "star") {
+      state.mp = Math.min(100, state.mp + 18);
+    }
+    if (item.type === "hourglass") {
+      state.timeLeft = Math.min(150, state.timeLeft + 10);
+    }
+    if (item.type === "potion") {
+      state.hp = Math.min(100, state.hp + 16);
+    }
+
+    updateHud();
+    window.setTimeout(() => item.el.remove(), 140);
+  }
+
+  function recoverLunaFromHit() {
+    if (!els.luna || state.hitTime > 0) return;
+    els.luna.classList.remove("is-hit");
+    els.luna.src = state.direction === 0 ? IDLE_SRC : MOVE_SRC;
+  }
+
+  function hitLuna() {
+    if (state.invincibleTime > 0) return;
+
+    state.hp = Math.max(0, state.hp - CROW_DAMAGE);
+    state.packageCondition = Math.max(0, state.packageCondition - PACKAGE_DAMAGE);
+    state.invincibleTime = INVINCIBLE_DURATION;
+    state.hitTime = HIT_DURATION;
+    state.velocity *= -0.28;
+    state.xVelocity = Math.max(state.xVelocity, 12);
+
+    if (els.luna) {
+      els.luna.src = HIT_SRC;
+      els.luna.classList.add("is-hit");
+    }
+    updateHud();
+  }
+
+  function updateHitState(dt) {
+    state.invincibleTime = Math.max(0, state.invincibleTime - dt);
+    const wasHit = state.hitTime > 0;
+    state.hitTime = Math.max(0, state.hitTime - dt);
+    if (wasHit && state.hitTime === 0) recoverLunaFromHit();
+  }
+
+  function updateObstacles(dt) {
+    state.nextCrowIn -= dt;
+    if (state.nextCrowIn <= 0) {
+      spawnCrow();
+      scheduleNextCrow();
+    }
+
+    const progress = clamp(state.distance / state.totalDistance, 0, 1);
+    state.obstacles.forEach((obstacle) => {
+      obstacle.x -= (obstacle.speed + progress * 7) * dt;
+      obstacle.y += Math.sin((performance.now() / 230) + obstacle.x) * 0.018;
+      applyObstaclePosition(obstacle);
+
+      if (!obstacle.hit && isCollidingWithLuna(obstacle)) {
+        obstacle.hit = true;
+        obstacle.el.remove();
+        hitLuna();
+      }
+    });
+
+    state.obstacles = state.obstacles.filter((obstacle) => {
+      const alive = !obstacle.hit && obstacle.x > -12;
+      if (!alive) obstacle.el.remove();
+      return alive;
+    });
+  }
+
+  function updateItems(dt) {
+    state.nextItemIn -= dt;
+    if (state.nextItemIn <= 0) {
+      spawnItem();
+      scheduleNextItem();
+    }
+
+    const progress = clamp(state.distance / state.totalDistance, 0, 1);
+    state.items.forEach((item) => {
+      item.x -= (item.speed + progress * 4) * dt;
+      item.y += Math.sin((performance.now() / 310) + item.x) * 0.015;
+      applyWorldObjectPosition(item);
+
+      if (!item.collected && isCollectingItem(item)) {
+        collectItem(item);
+      }
+    });
+
+    state.items = state.items.filter((item) => {
+      const alive = !item.collected && item.x > -10;
+      if (!alive && !item.collected) item.el.remove();
+      return alive;
+    });
+  }
+
   function formatTime(seconds) {
     const safeSeconds = Math.max(0, Math.ceil(seconds));
     const minutes = Math.floor(safeSeconds / 60);
@@ -283,8 +522,6 @@
 
   function updateHud() {
     const progress = clamp((state.distance / state.totalDistance) * 100, 0, 100);
-    const remaining = Math.max(0, Math.ceil(state.totalDistance - state.distance));
-
     const hp = clamp(state.hp, 0, 100);
     const mp = clamp(state.mp, 0, 100);
     if (els.hp) els.hp.style.setProperty("--meter-value", `${hp * 0.65}%`);
@@ -292,7 +529,7 @@
     if (els.hpValue) els.hpValue.textContent = `${Math.ceil(hp)}/100`;
     if (els.mpValue) els.mpValue.textContent = `${Math.ceil(mp)}/100`;
     if (els.timer) els.timer.textContent = formatTime(state.timeLeft);
-    if (els.distance) els.distance.textContent = `${remaining.toLocaleString("ko-KR")}m`;
+    if (els.distance) els.distance.textContent = `${Math.ceil(state.packageCondition)}%`;
     if (els.progress) els.progress.style.setProperty("--progress", `${progress}%`);
   }
 
@@ -300,12 +537,19 @@
     state.running = false;
     state.paused = false;
     state.direction = 0;
+    state.hitTime = 0;
+    state.invincibleTime = 0;
     syncPauseButtonImage();
-    if (els.luna) els.luna.src = result === "success" ? "image/luna_game_success_cat.png" : IDLE_SRC;
+    clearWorldObjects();
+    if (els.luna) {
+      els.luna.classList.remove("is-hit");
+      els.luna.src = result === "success" ? "image/luna_game_success_cat.png" : IDLE_SRC;
+    }
     console.log(`[게임 종료] ${result}`, {
       request: document.body.dataset.selectedRequest,
       hp: Math.round(state.hp),
       mp: Math.round(state.mp),
+      packageCondition: Math.round(state.packageCondition),
       timeLeft: Math.ceil(state.timeLeft),
       distance: Math.round(state.distance),
     });
@@ -318,7 +562,7 @@
     const dt = Math.min((now - state.lastTime) / 1000 || 0, 0.04);
     state.lastTime = now;
 
-    const acceleration = state.direction * 155;
+    const acceleration = state.direction * 184;
     const horizontalAcceleration = state.horizontalDirection * 92;
     const passiveBackDrift = state.horizontalDirection === 0 ? PASSIVE_BACK_DRIFT : PASSIVE_BACK_DRIFT * 0.38;
     state.velocity += acceleration * dt;
@@ -326,7 +570,7 @@
     state.xVelocity -= passiveBackDrift * dt;
     state.velocity *= state.direction === 0 ? 0.88 : 0.94;
     state.xVelocity *= state.horizontalDirection === 0 ? 0.86 : 0.93;
-    state.velocity = clamp(state.velocity, -42, 42);
+    state.velocity = clamp(state.velocity, -49, 49);
     state.xVelocity = clamp(state.xVelocity, -26, 26);
     state.y = clamp(state.y + state.velocity * dt, 22, 78);
     state.x = clamp(state.x + state.xVelocity * dt, LEFT_BOUNDARY, RIGHT_BOUNDARY);
@@ -341,16 +585,19 @@
     state.timeLeft = Math.max(0, state.timeLeft - dt);
     state.distance = Math.min(state.totalDistance, state.distance + state.speed * dt);
 
+    updateHitState(dt);
+    updateObstacles(dt);
+    updateItems(dt);
     applyBackground();
     applyLunaPose();
     updateHud();
 
     if (state.distance >= state.totalDistance) {
-      endGame("success");
+      endGame(state.packageCondition > 0 ? "success" : "fail");
       return;
     }
 
-    if (state.timeLeft <= 0 || state.hp <= 0 || state.x <= LEFT_BOUNDARY) {
+    if (state.timeLeft <= 0 || state.hp <= 0 || state.packageCondition <= 0 || state.x <= LEFT_BOUNDARY) {
       endGame("fail");
       return;
     }
@@ -376,15 +623,22 @@
     syncPauseButtonImage();
     state.hp = 100;
     state.mp = 100;
-    state.timeLeft = 90;
+    state.timeLeft = 120;
     state.distance = 0;
     state.totalDistance = 1200;
+    state.packageCondition = 100;
     state.speed = 105;
     state.bgX = 0;
+    state.hitTime = 0;
+    state.invincibleTime = 0;
+    clearWorldObjects();
+    scheduleNextCrow();
+    scheduleNextItem();
     state.runId += 1;
     state.lastTime = performance.now();
     document.body.dataset.selectedRequest = requestName || "";
     if (els.luna) {
+      els.luna.classList.remove("is-hit");
       els.luna.src = IDLE_SRC;
       applyLunaPose();
     }

@@ -1057,6 +1057,41 @@ body.play-view .play-screen {
   pointer-events: none;
 }
 
+.play-object-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.play-obstacle {
+  position: absolute;
+  width: 9.5%;
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 5px 9px rgba(10, 7, 20, 0.58));
+  will-change: left, top, transform;
+}
+
+.play-item {
+  position: absolute;
+  width: 5.8%;
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 4px 8px rgba(17, 9, 30, 0.48));
+  will-change: left, top, transform, opacity;
+}
+
+.play-item-star {
+  width: 6.1%;
+}
+
+.play-item-hourglass {
+  width: 5.4%;
+}
+
+.play-item.is-collected {
+  animation: itemCollect 0.14s ease-out forwards;
+}
+
 .play-canvas {
   position: absolute;
   inset: 0;
@@ -1076,6 +1111,11 @@ body.play-view .play-screen {
   transition: transform 0.16s ease, top 0.08s linear, left 0.08s linear;
   filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.5));
   pointer-events: none;
+  z-index: 2;
+}
+
+.play-luna.is-hit {
+  animation: lunaHitFlash 0.12s steps(2, end) infinite;
 }
 
 .play-hud {
@@ -1535,6 +1575,19 @@ button[data-name].is-pressing {
 @keyframes lunaFloat {
   0%, 100% { transform: translateY(0); }
   50%      { transform: translateY(-1.8%); }
+}
+
+@keyframes lunaHitFlash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.38; }
+}
+
+@keyframes itemCollect {
+  to {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.28);
+    filter: drop-shadow(0 0 12px rgba(255, 238, 155, 0.85));
+  }
 }
 
 /* =========================================================
