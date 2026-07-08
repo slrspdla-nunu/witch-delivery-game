@@ -48,13 +48,31 @@ body {
 }
 
 body.play-view .screen {
-  aspect-ratio: auto;
-  width: 100vw;
-  height: 100vh;
-  height: 100dvh;
+  aspect-ratio: 844 / 390;
+  width: min(100vw, 100vh * 844 / 390, 844px);
+  width: min(100vw, 100dvh * 844 / 390, 844px);
+  height: auto;
   overflow: hidden;
-  border-radius: 0;
+  border-radius: 8px;
   --play-ui-scale: 1;
+}
+
+@media (max-width: 700px) and (orientation: portrait) {
+  body.play-view {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+  }
+
+  body.play-view.play-landscape-fallback .screen {
+    aspect-ratio: 844 / 390;
+    width: 100vh;
+    width: 100dvh;
+    max-width: none;
+    height: auto;
+    transform: rotate(90deg);
+    transform-origin: center;
+  }
 }
 
 /* 배경만 뷰포트 전체를 덮어 꽉 채움 (좁은 .screen 틀을 벗어나 살짝 확대되어 들어감).
@@ -1160,7 +1178,7 @@ body.play-view .play-screen {
 .play-mp .play-meter-fill { background: linear-gradient(90deg, #248bc7, #68d6ff); }
 
 .play-pause {
-  justify-self: center;
+  justify-self: end;
   min-width: 0;
   border: 1px solid rgba(246, 199, 115, 0.72);
   border-radius: 999px;
@@ -1329,17 +1347,17 @@ body.play-view .play-screen {
   }
 
   .play-hud {
-    left: -0.6%;
-    right: -0.6%;
+    left: 1%;
+    right: 1%;
     top: 2.2%;
   }
 
-  body.play-view .play-controls-left { left: 0.4%; }
-  body.play-view .play-controls-right { right: 0.4%; }
+  body.play-view .play-controls-left { left: 2.2%; }
+  body.play-view .play-controls-right { right: 0.2%; }
 }
 
-.play-controls-left { left: 1.2%; }
-.play-controls-right { right: 1.2%; }
+.play-controls-left { left: 2.2%; }
+.play-controls-right { right: 0.2%; }
 
 .play-controls-left {
   grid-template-columns: repeat(3, var(--play-dpad-step));

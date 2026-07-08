@@ -96,6 +96,34 @@
     els.pause.setAttribute("aria-label", state.paused ? "재개" : "일시정지");
   }
 
+  function syncLandscapeFallback() {
+    const shouldRotate =
+      window.matchMedia?.("(max-width: 700px) and (orientation: portrait)").matches &&
+      window.matchMedia?.("(pointer: coarse)").matches;
+    document.body.classList.toggle("play-landscape-fallback", Boolean(shouldRotate));
+  }
+
+  async function requestLandscapeMode() {
+    syncLandscapeFallback();
+
+    const isMobileLike = window.matchMedia?.("(pointer: coarse)").matches;
+    if (!isMobileLike) return;
+
+    try {
+      if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+        await document.documentElement.requestFullscreen();
+      }
+
+      if (screen.orientation?.lock) {
+        await screen.orientation.lock("landscape");
+      }
+    } catch (error) {
+      console.warn("[화면 방향 잠금 실패]", error);
+    } finally {
+      window.setTimeout(syncLandscapeFallback, 250);
+    }
+  }
+
   function bindControlButtonImages() {
     document.querySelectorAll(".play-control-btn").forEach((button) => {
       const press = () => setControlButtonImage(button, true);
@@ -334,6 +362,7 @@
 
   function start(requestName) {
     cacheElements();
+    requestLandscapeMode();
     state.running = true;
     state.paused = false;
     state.x = 11;
@@ -377,6 +406,8 @@
     bindPauseButton();
     bindKeyboardControls();
     bindStageDrag();
+    window.addEventListener("resize", syncLandscapeFallback);
+    window.addEventListener("orientationchange", syncLandscapeFallback);
   }
 
   document.addEventListener("DOMContentLoaded", init);
