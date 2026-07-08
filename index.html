@@ -246,9 +246,59 @@
         <img src="image/ui_request_refresh_full.png" alt="" aria-hidden="true" />
       </button>
     </section>
+
+    <section class="play-screen" aria-label="배달 비행 게임 화면">
+      <div class="play-stage">
+        <img class="play-bg play-bg-a" src="image/play_background_skycity.png" alt="" aria-hidden="true" />
+        <img class="play-bg play-bg-b" src="image/play_background_skycity.png" alt="" aria-hidden="true" />
+        <canvas class="play-canvas" id="play-canvas" width="844" height="390"></canvas>
+        <img class="play-luna" src="image/luna_game_broom_pose_side.png" alt="루나 벨" />
+      </div>
+
+      <div class="play-hud" aria-label="게임 정보">
+        <div class="play-bars">
+          <div class="play-meter play-hp" style="--meter-value: 100%;">
+            <span>HP</span>
+            <i></i>
+          </div>
+          <div class="play-meter play-mp" style="--meter-value: 100%;">
+            <span>MP</span>
+            <i></i>
+          </div>
+        </div>
+        <div class="play-timer">01:30</div>
+        <div class="play-distance">1,200m</div>
+        <button class="play-pause" data-name="일시정지" aria-label="일시정지">Ⅱ</button>
+      </div>
+
+      <div class="play-progress" aria-label="배달 진행도" style="--progress: 0%;">
+        <span class="play-progress-start">출발</span>
+        <i><b></b></i>
+        <span class="play-progress-end">도착</span>
+      </div>
+
+      <div class="play-controls play-controls-left" aria-label="상승 하강 조작">
+        <button class="play-control-btn play-up" data-name="상승" aria-label="상승">
+          <img src="image/game_button_up_idle.png" alt="" aria-hidden="true" />
+        </button>
+        <button class="play-control-btn play-down" data-name="하강" aria-label="하강">
+          <img src="image/game_button_down_idle.png" alt="" aria-hidden="true" />
+        </button>
+      </div>
+
+      <div class="play-controls play-controls-right" aria-label="스킬 조작">
+        <button class="play-control-btn play-skill" data-name="스킬" aria-label="스킬">
+          <img src="image/game_button_star_idle.png" alt="" aria-hidden="true" />
+        </button>
+        <button class="play-control-btn play-shield" data-name="보호막" aria-label="보호막">
+          <img src="image/game_button_shield_idle.png" alt="" aria-hidden="true" />
+        </button>
+      </div>
+    </section>
   </div>
 
   <script src="script.js"></script>
+  <script src="js/game.js"></script>
   <script src="js/luna-mesh.js?v=pin-motion-2"></script>
   <script src="js/nero-mesh.js?v=pin-motion-2"></script>
   <script src="js/bgm.js"></script>

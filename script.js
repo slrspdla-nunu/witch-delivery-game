@@ -33,6 +33,17 @@ document.addEventListener("DOMContentLoaded", () => {
         document.body.classList.remove("request-view");
         return;
       }
+      if (btn.classList.contains("request-card")) {
+        if (btn.classList.contains("request-card-locked")) {
+          showToast("아직 잠긴 의뢰");
+          return;
+        }
+        document.body.dataset.selectedRequest = name;
+        document.body.classList.remove("request-view");
+        document.body.classList.add("play-view");
+        window.WitchGame?.start(name);
+        return;
+      }
       // 여기에 각 화면 전환 로직을 연결하면 됩니다.
       showToast(name);
     });
