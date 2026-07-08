@@ -249,26 +249,40 @@
 
     <section class="play-screen" aria-label="배달 비행 게임 화면">
       <div class="play-stage">
-        <img class="play-bg play-bg-a" src="image/play_background_skycity.png" alt="" aria-hidden="true" />
-        <img class="play-bg play-bg-b" src="image/play_background_skycity.png" alt="" aria-hidden="true" />
+        <img class="play-bg play-bg-panorama" src="image/play_background_skycity_panorama.png" alt="" aria-hidden="true" />
         <canvas class="play-canvas" id="play-canvas" width="844" height="390"></canvas>
         <img class="play-luna" src="image/luna_game_broom_pose_side.png" alt="루나 벨" />
       </div>
 
       <div class="play-hud" aria-label="게임 정보">
         <div class="play-bars">
-          <div class="play-meter play-hp" style="--meter-value: 100%;">
-            <span>HP</span>
-            <i></i>
+          <img class="play-bars-frame" src="image/ui_game_status_frame.png" alt="" aria-hidden="true" />
+          <div class="play-meter play-hp" style="--meter-value: 66%;">
+            <img class="play-meter-icon" src="image/ui_game_icon_heart.png" alt="" aria-hidden="true" />
+            <span class="play-meter-label">HP</span>
+            <i class="play-meter-fill"></i>
+            <span class="play-meter-value play-hp-value">100/100</span>
           </div>
-          <div class="play-meter play-mp" style="--meter-value: 100%;">
-            <span>MP</span>
-            <i></i>
+          <div class="play-meter play-mp" style="--meter-value: 66%;">
+            <img class="play-meter-icon" src="image/ui_game_icon_star.png" alt="" aria-hidden="true" />
+            <span class="play-meter-label">MP</span>
+            <i class="play-meter-fill"></i>
+            <span class="play-meter-value play-mp-value">100/100</span>
           </div>
         </div>
-        <div class="play-timer">01:30</div>
-        <div class="play-distance">1,200m</div>
-        <button class="play-pause" data-name="일시정지" aria-label="일시정지">Ⅱ</button>
+        <div class="play-timer" aria-label="남은 시간">
+          <img class="play-timer-frame" src="image/ui_game_timer_frame.png" alt="" aria-hidden="true" />
+          <span class="play-timer-label">남은 시간</span>
+          <span class="play-timer-value">01:30</span>
+        </div>
+        <div class="play-distance" aria-label="목적지까지 남은 거리">
+          <img class="play-distance-frame" src="image/ui_game_distance_frame.png" alt="" aria-hidden="true" />
+          <span class="play-distance-label">목적지까지</span>
+          <span class="play-distance-value">1,200m</span>
+        </div>
+        <button class="play-pause" data-name="일시정지" aria-label="일시정지" data-idle-src="image/game_button_pause_idle.png" data-pressed-src="image/game_button_pause_pressed.png">
+          <img src="image/game_button_pause_idle.png" alt="" aria-hidden="true" />
+        </button>
       </div>
 
       <div class="play-progress" aria-label="배달 진행도" style="--progress: 0%;">
@@ -278,19 +292,25 @@
       </div>
 
       <div class="play-controls play-controls-left" aria-label="상승 하강 조작">
-        <button class="play-control-btn play-up" data-name="상승" aria-label="상승">
+        <button class="play-control-btn play-up" data-name="상승" aria-label="상승" data-idle-src="image/game_button_up_idle.png" data-pressed-src="image/game_button_up_pressed.png">
           <img src="image/game_button_up_idle.png" alt="" aria-hidden="true" />
         </button>
-        <button class="play-control-btn play-down" data-name="하강" aria-label="하강">
+        <button class="play-control-btn play-down" data-name="하강" aria-label="하강" data-idle-src="image/game_button_down_idle.png" data-pressed-src="image/game_button_down_pressed.png">
           <img src="image/game_button_down_idle.png" alt="" aria-hidden="true" />
+        </button>
+        <button class="play-control-btn play-back" data-name="뒤로" aria-label="뒤로" data-idle-src="image/game_button_back_idle.png" data-pressed-src="image/game_button_back_pressed.png">
+          <img src="image/game_button_back_idle.png" alt="" aria-hidden="true" />
+        </button>
+        <button class="play-control-btn play-front" data-name="앞으로" aria-label="앞으로" data-idle-src="image/game_button_front_idle.png" data-pressed-src="image/game_button_front_pressed.png">
+          <img src="image/game_button_front_idle.png" alt="" aria-hidden="true" />
         </button>
       </div>
 
       <div class="play-controls play-controls-right" aria-label="스킬 조작">
-        <button class="play-control-btn play-skill" data-name="스킬" aria-label="스킬">
+        <button class="play-control-btn play-skill" data-name="스킬" aria-label="스킬" data-idle-src="image/game_button_star_idle.png" data-pressed-src="image/game_button_star_pressed.png">
           <img src="image/game_button_star_idle.png" alt="" aria-hidden="true" />
         </button>
-        <button class="play-control-btn play-shield" data-name="보호막" aria-label="보호막">
+        <button class="play-control-btn play-shield" data-name="보호막" aria-label="보호막" data-idle-src="image/game_button_shield_idle.png" data-pressed-src="image/game_button_shield_pressed.png">
           <img src="image/game_button_shield_idle.png" alt="" aria-hidden="true" />
         </button>
       </div>

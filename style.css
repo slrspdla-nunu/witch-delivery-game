@@ -48,11 +48,13 @@ body {
 }
 
 body.play-view .screen {
-  aspect-ratio: 16 / 9;
-  width: min(100vw, 100vh * 16 / 9, 844px);
-  width: min(100vw, 100dvh * 16 / 9, 844px);
+  aspect-ratio: auto;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
-  border-radius: 14px;
+  border-radius: 0;
+  --play-ui-scale: 1;
 }
 
 /* 배경만 뷰포트 전체를 덮어 꽉 채움 (좁은 .screen 틀을 벗어나 살짝 확대되어 들어감).
@@ -1016,21 +1018,26 @@ body.play-view .play-screen {
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background: #11102f;
+  background-color: #11102f;
+  background-image: url("image/play_background_skycity_panorama.png");
+  background-repeat: repeat-x;
+  background-position: var(--play-bg-x, 0px) center;
+  background-size: auto 100%;
 }
 
 .play-bg {
   position: absolute;
   top: 0;
-  width: 100%;
+  left: 0;
+  width: 300%;
+  min-width: 300%;
+  max-width: none;
   height: 100%;
   object-fit: cover;
   filter: saturate(1.08) brightness(0.92);
+  opacity: 0;
   pointer-events: none;
 }
-
-.play-bg-a { left: 0; }
-.play-bg-b { left: 100%; }
 
 .play-canvas {
   position: absolute;
@@ -1045,18 +1052,18 @@ body.play-view .play-screen {
   position: absolute;
   left: 11%;
   top: 39%;
-  width: 24%;
+  width: 26%;
   transform: translateY(-50%);
   transform-origin: 48% 54%;
-  transition: transform 0.16s ease, top 0.08s linear;
+  transition: transform 0.16s ease, top 0.08s linear, left 0.08s linear;
   filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.5));
   pointer-events: none;
 }
 
 .play-hud {
   position: absolute;
-  left: 2.2%;
-  right: 2.2%;
+  left: 1.2%;
+  right: 1.2%;
   top: 3.2%;
   height: 13%;
   display: grid;
@@ -1065,49 +1072,93 @@ body.play-view .play-screen {
   gap: 1.6%;
   z-index: 3;
   pointer-events: none;
+  transform: scale(var(--play-ui-scale));
+  transform-origin: top center;
 }
 
 .play-bars {
-  display: grid;
-  gap: 7%;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1756 / 567;
+  align-self: start;
+}
+
+.play-bars-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
 }
 
 .play-meter {
-  position: relative;
-  height: 18px;
-  border: 1px solid rgba(246, 199, 115, 0.72);
-  border-radius: 999px;
-  background: rgba(18, 16, 40, 0.76);
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.62), 0 2px 5px rgba(0, 0, 0, 0.32);
-  overflow: hidden;
-}
-
-.play-meter span {
-  position: absolute;
-  left: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 2;
-  color: #fff2c9;
-  font-size: 10px;
-  font-weight: 900;
-  text-shadow: 0 1px 2px rgba(25, 13, 31, 0.86);
-}
-
-.play-meter i {
   position: absolute;
   left: 0;
-  top: 0;
-  width: var(--meter-value);
-  height: 100%;
-  border-radius: inherit;
+  width: 100%;
+  height: 42%;
+  overflow: visible;
+  pointer-events: none;
 }
 
-.play-hp i { background: linear-gradient(90deg, #b93652, #ff7590); }
-.play-mp i { background: linear-gradient(90deg, #4d50c6, #a56cff); }
+.play-hp {
+  top: 2.8%;
+}
 
-.play-timer,
-.play-distance,
+.play-mp {
+  bottom: 2.8%;
+}
+
+.play-meter-icon {
+  position: absolute;
+  left: 5.5%;
+  top: 54%;
+  width: 8.8%;
+  transform: translateY(-50%);
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.58));
+  z-index: 3;
+}
+
+.play-mp .play-meter-icon {
+  top: 49%;
+}
+
+.play-meter-label,
+.play-meter-value {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #fff2c9;
+  font-size: clamp(8px, 1.55vw, 13px);
+  font-weight: 900;
+  text-shadow: 0 1px 2px rgba(25, 13, 31, 0.86);
+  z-index: 4;
+  white-space: nowrap;
+}
+
+.play-meter-label {
+  left: 17.4%;
+}
+
+.play-meter-value {
+  right: 7.6%;
+  letter-spacing: 0;
+}
+
+.play-meter-fill {
+  position: absolute;
+  left: 28.6%;
+  top: 30%;
+  width: var(--meter-value);
+  height: 41%;
+  border-radius: 999px;
+  box-shadow: inset 0 1px 3px rgba(255, 255, 255, 0.22), inset 0 -1px 2px rgba(0, 0, 0, 0.32);
+  z-index: 2;
+}
+
+.play-hp .play-meter-fill { background: linear-gradient(90deg, #bd3c58, #ff7892); }
+.play-mp .play-meter-fill { background: linear-gradient(90deg, #248bc7, #68d6ff); }
+
 .play-pause {
   justify-self: center;
   min-width: 0;
@@ -1121,23 +1172,109 @@ body.play-view .play-screen {
 }
 
 .play-timer {
-  padding: 5px 18px;
-  font-size: clamp(17px, 3.2vw, 25px);
+  position: relative;
+  justify-self: center;
+  width: min(31vw, 210px);
+  aspect-ratio: 1569 / 662;
+  color: #ffe8b8;
+  font-weight: 900;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(30, 16, 36, 0.9);
+}
+
+.play-timer-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.play-timer-label,
+.play-timer-value {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+  white-space: nowrap;
+}
+
+.play-timer-label {
+  top: 16%;
+  font-size: clamp(8px, 1.45vw, 13px);
+  color: #f4c989;
+}
+
+.play-timer-value {
+  top: 30%;
+  font-size: clamp(18px, 3.4vw, 31px);
+  letter-spacing: 0;
 }
 
 .play-distance {
-  width: 100%;
-  padding: 6px 0;
+  position: relative;
+  justify-self: center;
+  width: min(27vw, 181px);
+  aspect-ratio: 1593 / 785;
   text-align: center;
-  font-size: clamp(12px, 2.2vw, 17px);
+  color: #ffe8b8;
+  font-weight: 900;
+  text-shadow: 0 1px 2px rgba(30, 16, 36, 0.9);
+  transform: translateX(-10%);
+}
+
+.play-distance-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.play-distance-label,
+.play-distance-value {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+  white-space: nowrap;
+}
+
+.play-distance-label {
+  top: 13%;
+  font-size: clamp(8px, 1.35vw, 12px);
+  color: #f4c989;
+}
+
+.play-distance-value {
+  top: 34%;
+  font-size: clamp(16px, 2.7vw, 25px);
+  letter-spacing: 0;
 }
 
 .play-pause {
-  width: 34px;
+  width: clamp(38px, 7vw, 58px);
   aspect-ratio: 1;
-  font-size: 16px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
   pointer-events: auto;
   transform: scale(calc(var(--hover-scale, 1) * var(--press-scale, 1)));
+}
+
+.play-pause img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.play-pause img.is-pressed-control {
+  transform: scale(1.08);
 }
 
 .play-progress {
@@ -1177,23 +1314,87 @@ body.play-view .play-screen {
 }
 
 .play-controls {
+  --play-control-size: calc(clamp(72px, 12.8vw, 98px) * var(--play-ui-scale, 1));
+  --play-dpad-step: calc(var(--play-control-size) * 0.58);
   position: absolute;
-  bottom: 6.5%;
+  bottom: 5.2%;
   z-index: 4;
   display: grid;
-  gap: 9px;
+  gap: 12px;
 }
 
-.play-controls-left { left: 3.2%; }
-.play-controls-right { right: 3.2%; }
+@media (max-width: 700px) and (orientation: landscape) {
+  body.play-view .screen {
+    --play-ui-scale: 0.84;
+  }
+
+  .play-hud {
+    left: -0.6%;
+    right: -0.6%;
+    top: 2.2%;
+  }
+
+  body.play-view .play-controls-left { left: 0.4%; }
+  body.play-view .play-controls-right { right: 0.4%; }
+}
+
+.play-controls-left { left: 1.2%; }
+.play-controls-right { right: 1.2%; }
+
+.play-controls-left {
+  grid-template-columns: repeat(3, var(--play-dpad-step));
+  grid-template-rows: repeat(3, var(--play-dpad-step));
+  gap: 0;
+  align-items: center;
+  justify-items: center;
+}
+
+.play-controls-right {
+  grid-template-columns: var(--play-control-size);
+  grid-template-rows: repeat(3, var(--play-dpad-step));
+  gap: 0;
+  align-items: center;
+  justify-items: center;
+}
+
+.play-up {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.play-back {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.play-front {
+  grid-column: 3;
+  grid-row: 2;
+}
+
+.play-down {
+  grid-column: 2;
+  grid-row: 3;
+}
+
+.play-skill {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.play-shield {
+  grid-column: 1;
+  grid-row: 3;
+}
 
 .play-control-btn {
-  width: clamp(56px, 10.2vw, 78px);
+  width: var(--play-control-size);
   aspect-ratio: 1;
   filter: drop-shadow(0 3px 9px rgba(0, 0, 0, 0.48));
   transform: scale(calc(var(--hover-scale, 1) * var(--press-scale, 1)));
   transition: transform 0.12s ease, filter 0.12s ease;
   touch-action: manipulation;
+  z-index: 1;
 }
 
 .play-control-btn img {
@@ -1201,6 +1402,11 @@ body.play-view .play-screen {
   height: 100%;
   object-fit: contain;
   pointer-events: none;
+  transition: transform 0.08s ease;
+}
+
+.play-control-btn img.is-rotated-control {
+  transform: rotate(180deg);
 }
 
 @media (min-width: 371px) and (max-width: 379px) {
