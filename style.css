@@ -2093,7 +2093,7 @@ body.result-success .success-screen {
   position: absolute;
   left: 9%;
   right: 9%;
-  top: 11%;
+  top: 20%;
   bottom: 8%;
   z-index: 1;
   display: flex;
