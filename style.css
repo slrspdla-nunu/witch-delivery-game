@@ -2053,18 +2053,19 @@ body.result-success .success-screen {
   position: absolute;
   left: -1%;
   bottom: 9%;
-  height: 88%;
+  height: 89%;
   width: auto;
   object-fit: contain;
   pointer-events: none;
+  z-index: 3;               /* 보드 앞으로 → 왼쪽 가장자리를 살짝 가림 */
   filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.55));
 }
 
 .success-board {
   position: relative;
-  height: 88%;
+  height: 76%;
   aspect-ratio: 1628 / 921;
-  margin-right: 1.5%;
+  margin-right: 2%;
   flex: none;
   container-type: inline-size;
 }
@@ -2092,8 +2093,8 @@ body.result-success .success-screen {
   position: absolute;
   left: 8%;
   right: 9%;
-  top: 12%;
-  bottom: 4.5%;
+  top: 10%;
+  bottom: 4%;
   z-index: 1;
   display: flex;
   flex-direction: column;
