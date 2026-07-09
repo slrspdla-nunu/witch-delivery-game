@@ -299,79 +299,67 @@
     return target?.closest?.(".play-up, .play-down, .play-back, .play-front") || null;
   }
 
-  function updateMovementFromPointer(event) {
-    if (state.controlPointerId !== event.pointerId) return;
-    const control = getMovementControlAt(event.clientX, event.clientY);
-
-    if (control?.classList.contains("play-up")) {
+  // 손가락 아래 버튼에 맞춰 이동 방향 적용(없으면 정지). 이미지는 state 기반으로 자동 갱신됨.
+  function applyMovementControl(control) {
+    if (control === els.up) {
       setDirection(-1);
       setHorizontalDirection(0);
-      return;
-    }
-    if (control?.classList.contains("play-down")) {
+    } else if (control === els.down) {
       setDirection(1);
       setHorizontalDirection(0);
-      return;
-    }
-    if (control?.classList.contains("play-back")) {
+    } else if (control === els.back) {
       setDirection(0);
       setHorizontalDirection(-1);
-      return;
-    }
-    if (control?.classList.contains("play-front")) {
+    } else if (control === els.front) {
       setDirection(0);
       setHorizontalDirection(1);
-      return;
+    } else {
+      setDirection(0);
+      setHorizontalDirection(0);
     }
-
-    setDirection(0);
-    setHorizontalDirection(0);
   }
 
-  function stopMovementPointer(event) {
-    if (state.controlPointerId !== event.pointerId) return;
-    state.controlPointerId = null;
-    setDirection(0);
-    setHorizontalDirection(0);
-  }
+  // 이동 d-pad를 '컨테이너 단위'로 처리: 컨테이너가 포인터를 캡처하고
+  // 손가락 위치로 버튼을 판정 → 버튼 사이를 슬라이드하면 그 버튼이 눌린 것처럼 인식.
+  function setupMovementControls() {
+    const pad = document.querySelector(".play-controls-left");
+    if (!pad) return;
 
-  function bindHoldButton(button, direction) {
-    if (!button) return;
-
-    const start = (event) => {
+    pad.addEventListener("pointerdown", (event) => {
+      if (state.controlPointerId !== null) return; // 이미 다른 손가락이 조작 중
       event.preventDefault();
       state.controlPointerId = event.pointerId;
-      button.setPointerCapture?.(event.pointerId);
-      updateMovementFromPointer(event);
-    };
+      try { pad.setPointerCapture?.(event.pointerId); } catch (_) {}
+      applyMovementControl(getMovementControlAt(event.clientX, event.clientY));
+    });
 
-    button.addEventListener("pointerdown", start);
-    button.addEventListener("pointermove", updateMovementFromPointer);
-    button.addEventListener("pointerup", stopMovementPointer);
-    button.addEventListener("pointercancel", stopMovementPointer);
-    button.addEventListener("lostpointercapture", stopMovementPointer);
-  }
-
-  function bindHorizontalHoldButton(button, direction) {
-    if (!button) return;
-
-    const start = (event) => {
+    pad.addEventListener("pointermove", (event) => {
+      if (state.controlPointerId !== event.pointerId) return;
       event.preventDefault();
-      state.controlPointerId = event.pointerId;
-      button.setPointerCapture?.(event.pointerId);
-      updateMovementFromPointer(event);
-    };
+      applyMovementControl(getMovementControlAt(event.clientX, event.clientY));
+    });
 
-    button.addEventListener("pointerdown", start);
-    button.addEventListener("pointermove", updateMovementFromPointer);
-    button.addEventListener("pointerup", stopMovementPointer);
-    button.addEventListener("pointercancel", stopMovementPointer);
-    button.addEventListener("lostpointercapture", stopMovementPointer);
+    const release = (event) => {
+      if (state.controlPointerId !== event.pointerId) return;
+      state.controlPointerId = null;
+      applyMovementControl(null);
+    };
+    pad.addEventListener("pointerup", release);
+    pad.addEventListener("pointercancel", release);
+    pad.addEventListener("lostpointercapture", release);
   }
 
   function bindSkillButtons() {
-    els.skill?.addEventListener("click", useDash);
-    els.shield?.addEventListener("click", useShield);
+    const bindTap = (button, action) => {
+      if (!button) return;
+      // pointerdown = 손 대는 즉시 발동(모바일에서 click보다 반응 확실). 중복 실행 방지 위해 click은 안 씀.
+      button.addEventListener("pointerdown", (event) => {
+        event.preventDefault();
+        action();
+      });
+    };
+    bindTap(els.skill, useDash);
+    bindTap(els.shield, useShield);
   }
 
   function bindPauseButton() {
@@ -1239,10 +1227,7 @@
   function init() {
     cacheElements();
     bindControlButtonImages();
-    bindHoldButton(els.up, -1);
-    bindHoldButton(els.down, 1);
-    bindHorizontalHoldButton(els.back, -1);
-    bindHorizontalHoldButton(els.front, 1);
+    setupMovementControls();
     bindSkillButtons();
     bindPauseButton();
     bindKeyboardControls();

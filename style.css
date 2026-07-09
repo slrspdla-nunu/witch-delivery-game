@@ -684,9 +684,22 @@ body.play-view .request-screen {
   isolation: isolate;
   color: #302942;
   font-family: 'Ridibatang', "Noto Sans KR", "Malgun Gothic", serif;
+  /* 배경 오버레이는 body::before(뷰포트 전체 fixed)에서 깔림 — 여기선 투명 */
+  background: transparent;
+}
+
+/* 어두운 배경 오버레이 — .screen(레터박스) 안이 아니라 뷰포트 전체를 덮어
+   어떤 화면 크기(예: 375x667)에서도 오버레이가 잘리지 않음. 의뢰 화면 콘텐츠(z12) 아래. */
+body.request-view::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 11;
   background:
+    linear-gradient(180deg, rgba(13, 10, 30, 0.9) 0%, rgba(24, 18, 48, 0.8) 45%, rgba(9, 7, 22, 0.94) 100%),
     url("image/background_clean_generated_ext.png") center / cover no-repeat,
     #14112f;
+  pointer-events: none;
 }
 
 body.request-view .request-screen {
@@ -1568,6 +1581,11 @@ body.play-view .play-screen {
   z-index: 4;
   display: grid;
   gap: 12px;
+  /* 터치가 스크롤/제스처로 취소되지 않도록 + 롱프레스 메뉴/선택 방지 */
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 
 @media (max-width: 700px) and (orientation: landscape) {
@@ -1641,7 +1659,10 @@ body.play-view .play-screen {
   filter: drop-shadow(0 3px 9px rgba(0, 0, 0, 0.48));
   transform: scale(calc(var(--hover-scale, 1) * var(--press-scale, 1)));
   transition: transform 0.12s ease, filter 0.12s ease;
-  touch-action: manipulation;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
   z-index: 1;
 }
 
