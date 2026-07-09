@@ -2114,7 +2114,7 @@ body.result-success .success-screen {
   gap: 1.8cqw;
 }
 .success-stars .s-star {
-  width: 10.5cqw;
+  width: 9cqw;
   height: auto;
   filter: drop-shadow(0 2px 4px rgba(120, 70, 20, 0.4));
 }
