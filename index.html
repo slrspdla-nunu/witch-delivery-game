@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>마녀 배달부의 비상착륙</title>
-  <link rel="stylesheet" href="style.css?v=20260709ac" />
+  <link rel="stylesheet" href="style.css?v=20260709ah" />
   <script src="js/pixi.min.js"></script>
 </head>
 <body>
@@ -492,10 +492,29 @@
         </div>
       </div>
     </section>
+
+    <!-- 일시정지 화면 (게임 위 모달) -->
+    <section class="pause-screen" aria-label="일시정지">
+      <div class="pause-board">
+        <img class="pause-board-bg" src="image/pause/pause-board-panel.png" alt="" aria-hidden="true" />
+        <img class="pause-banner" src="image/pause/pause-title-banner.png" alt="일시 정지" />
+        <div class="pause-body">
+          <button class="pause-btn pause-btn-continue" data-pause-action="continue" aria-label="이어하기">
+            <img src="image/pause/pause-button-continue.png" alt="이어하기" />
+          </button>
+          <button class="pause-btn pause-btn-retry" data-pause-action="retry" aria-label="다시하기">
+            <img src="image/pause/pause-button-retry.png" alt="다시하기" />
+          </button>
+          <button class="pause-btn pause-btn-town" data-pause-action="town" aria-label="마을로 돌아가기">
+            <img src="image/pause/pause-button-town.png" alt="마을로 돌아가기" />
+          </button>
+        </div>
+      </div>
+    </section>
   </div>
 
   <script src="script.js?v=20260709ab"></script>
-  <script src="js/game.js?v=20260709ab"></script>
+  <script src="js/game.js?v=20260709ah"></script>
   <script src="js/luna-mesh.js?v=20260709ab"></script>
   <script src="js/nero-mesh.js?v=20260709ab"></script>
   <script src="js/bgm.js?v=20260709ab"></script>

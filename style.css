@@ -41,7 +41,7 @@ body {
   width: min(100vw, 100dvh * 390 / 844, 390px);
   height: auto;
   flex: none;
-  /* 배경이 뷰포트를 꽉 채우므로, 틀 경계에서 자르지 않고 요소가 배경 위로 이어지게 함.
+  /* 배경이 뷰포트를 꽉 채우므로, 틀 경계에서 자르지 않고 루나가 배경 위로 이어지게 함.
      화면 밖으로 나가는 부분은 body(overflow:hidden)가 잘라줌. */
   overflow: visible;
   box-shadow: 0 0 12px rgba(0, 0, 0, 0.4);
@@ -75,8 +75,8 @@ body.play-view .screen {
   }
 }
 
-/* 배경을 뷰포트 전체(창 크기)로 채움 → 양옆 어두운 여백 없이 끝까지 꽉 참.
-   콘텐츠(.screen 안 요소들)는 비율 고정 프레임에 중앙 배치되어 안 늘어남. */
+/* 배경만 뷰포트 전체를 덮어 꽉 채움 (좁은 .screen 틀을 벗어나 살짝 확대되어 들어감).
+   .screen 이 딱 맞는 폰에선 뷰포트=틀 이라 그대로, 넓적한 폰에선 배경이 여백까지 채움. */
 .bg {
   position: fixed;
   inset: 0;
@@ -87,6 +87,21 @@ body.play-view .screen {
   z-index: 0;
   user-select: none;
   pointer-events: none;
+}
+
+/* 넓은 화면(PC·태블릿): 배경을 뷰포트가 아니라 390x844 프레임 안에 가둬,
+   폰처럼 가운데 정렬된 화면 + 어두운 여백으로 보이게 함.
+   폰(<=480px)에서는 위의 풀블리드 배경을 그대로 유지. */
+@media (min-width: 481px) {
+  .bg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+  }
+  .screen {
+    overflow: hidden;         /* 프레임 밖으로 넘치는 캐릭터가 어두운 여백에 걸리지 않게 */
+    border-radius: 18px;      /* 폰 화면 느낌 */
+  }
 }
 
 /* ---- 지평선 태양빛 (배경 노을 위 발광 오버레이) ---- */
@@ -669,13 +684,12 @@ body.play-view .request-screen {
   isolation: isolate;
   color: #302942;
   font-family: 'Ridibatang', "Noto Sans KR", "Malgun Gothic", serif;
-  /* 어두운 배경 오버레이는 body.request-view::before(뷰포트 전체 fixed)가 깔음 — 콘텐츠 컨테이너인 여긴 투명.
-     콘텐츠(카드·제목)는 비율 고정 프레임 안에 배치되어 안 늘어남. */
+  /* 배경 오버레이는 body::before(뷰포트 전체 fixed)에서 깔림 — 여기선 투명 */
   background: transparent;
 }
 
-/* 어두운 배경 오버레이 — 뷰포트 전체(창 크기)를 덮음. 의뢰 콘텐츠(z12)는 그 위 프레임 안에 중앙 배치.
-   cover 라 이미지가 왜곡 없이 창을 채움(잘림만 발생). */
+/* 어두운 배경 오버레이 — .screen(레터박스) 안이 아니라 뷰포트 전체를 덮어
+   어떤 화면 크기(예: 375x667)에서도 오버레이가 잘리지 않음. 의뢰 화면 콘텐츠(z12) 아래. */
 body.request-view::before {
   content: "";
   position: fixed;
@@ -1047,6 +1061,16 @@ body.request-view .request-screen {
   display: grid;
   place-items: center;
   opacity: 0;
+  pointer-events: none;
+}
+
+body.request-view::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 11;
+  background:
+    linear-gradient(180deg, rgba(20, 17, 48, 0.86) 0%, rgba(30, 24, 66, 0.68) 40%, rgba(12, 10, 30, 0.92) 100%);
   pointer-events: none;
 }
 
@@ -2294,7 +2318,7 @@ body.result-success .success-screen {
   overflow: hidden;
   font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
   background:
-    linear-gradient(180deg, rgba(12, 9, 26, 0.9), rgba(5, 4, 14, 0.95)),
+    linear-gradient(180deg, rgba(12, 9, 26, 0.66), rgba(5, 4, 14, 0.74)),
     url("image/play_background_skycity_panorama.png") center / cover no-repeat,
     #0b0818;
 }
@@ -2460,3 +2484,142 @@ body.result-failure .failure-screen {
   display: block;
 }
 .failure-btn:active { transform: scale(0.96); }
+
+/* ===================== 결과 화면 등장 연출 (감성적·부드럽게) =====================
+   보드·배너·별·보상·버튼이 시차를 두고 부드럽게 등장. 성공은 경쾌, 실패는 더 느리고 차분.
+   컨테이너(.success-screen/.failure-screen)는 빠르게 떠서 배경을 깔고, 연출은 자식이 담당. */
+@keyframes resultAppear   { from { opacity: 0; transform: scale(0.94); }                       to { opacity: 1; transform: scale(1); } }
+@keyframes resultRise     { from { opacity: 0; transform: translateY(16px); }                  to { opacity: 1; transform: translateY(0); } }
+@keyframes resultLunaIn   { from { opacity: 0; transform: translateY(6%); }                    to { opacity: 1; transform: translateY(0); } }
+@keyframes resultBannerIn { from { opacity: 0; transform: translateX(-50%) translateY(-14px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+/* --- 성공: 자식 기본 숨김 → 시차 등장 (총 ≈1.6s) --- */
+.success-luna, .success-board, .success-banner,
+.success-stars, .success-rewards-title, .success-slot, .success-buttons { opacity: 0; }
+
+body.result-success .success-luna {
+  animation: resultLunaIn 0.7s ease 0.15s both,
+             successLunaFloat 3.4s ease-in-out 0.9s infinite;   /* 등장 후 둥둥으로 핸드오프 */
+}
+body.result-success .success-board          { animation: resultAppear 0.7s ease 0.35s both; }
+body.result-success .success-banner         { animation: resultBannerIn 0.6s ease 0.6s both; }
+body.result-success .success-stars          { animation: resultRise 0.6s ease 0.9s both; }
+body.result-success .success-rewards-title  { animation: resultRise 0.55s ease 1.05s both; }
+body.result-success .success-slot           { animation: resultRise 0.5s ease both; }
+body.result-success .success-reward-slots .success-slot:nth-child(1) { animation-delay: 1.15s; }
+body.result-success .success-reward-slots .success-slot:nth-child(2) { animation-delay: 1.25s; }
+body.result-success .success-reward-slots .success-slot:nth-child(3) { animation-delay: 1.35s; }
+body.result-success .success-buttons        { animation: resultRise 0.6s ease 1.5s both; }
+
+/* --- 실패: 더 느리고 차분하게 (총 ≈2.1s), 팝/오버슈트 없이 페이드 위주 --- */
+.failure-luna, .failure-board, .failure-banner,
+.failure-stars, .failure-rewards-title, .failure-slot, .failure-buttons { opacity: 0; }
+
+body.result-failure .failure-luna {
+  animation: resultLunaIn 1s ease 0.3s both,
+             successLunaFloat 3.4s ease-in-out 1.3s infinite;
+}
+body.result-failure .failure-board          { animation: resultAppear 1s ease 0.55s both; }
+body.result-failure .failure-banner         { animation: resultBannerIn 0.9s ease 0.95s both; }
+body.result-failure .failure-stars          { animation: resultRise 0.8s ease 1.35s both; }
+body.result-failure .failure-rewards-title  { animation: resultRise 0.8s ease 1.5s both; }
+body.result-failure .failure-slot           { animation: resultRise 0.7s ease both; }
+body.result-failure .failure-reward-slots .failure-slot:nth-child(1) { animation-delay: 1.6s; }
+body.result-failure .failure-reward-slots .failure-slot:nth-child(2) { animation-delay: 1.72s; }
+body.result-failure .failure-reward-slots .failure-slot:nth-child(3) { animation-delay: 1.84s; }
+body.result-failure .failure-buttons        { animation: resultRise 0.8s ease 2s both; }
+
+/* 접근성: 모션 최소화 요청 시 단순 페이드(연출 생략) */
+@media (prefers-reduced-motion: reduce) {
+  .success-luna, .success-board, .success-banner, .success-stars, .success-rewards-title, .success-slot, .success-buttons,
+  .failure-luna, .failure-board, .failure-banner, .failure-stars, .failure-rewards-title, .failure-slot, .failure-buttons { opacity: 1; }
+  body.result-success .success-luna, body.result-failure .failure-luna { animation: successLunaFloat 3.4s ease-in-out infinite; }
+  body.result-success .success-board, body.result-success .success-banner, body.result-success .success-stars,
+  body.result-success .success-rewards-title, body.result-success .success-slot, body.result-success .success-buttons,
+  body.result-failure .failure-board, body.result-failure .failure-banner, body.result-failure .failure-stars,
+  body.result-failure .failure-rewards-title, body.result-failure .failure-slot, body.result-failure .failure-buttons { animation: none; }
+}
+
+/* ===================== 일시정지 화면 (게임 위 모달) =====================
+   성공/실패 화면의 보드/배너/버튼 레이아웃 참고. 단 전체 씬이 아니라
+   게임을 어둡게 덮는 딤 모달(게임이 뒤에 비쳐 보임). */
+.pause-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 22;                        /* 결과 화면(20/21)보다 위 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  background: rgba(8, 6, 20, 0.56);   /* 게임을 어둡게 덮는 딤 */
+  overflow: hidden;
+}
+body.pause-view .pause-screen {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.pause-board {
+  position: relative;
+  height: 84%;
+  aspect-ratio: 1258 / 844;
+  container-type: inline-size;
+  animation: none;
+}
+body.pause-view .pause-board {
+  animation: resultAppear 0.32s cubic-bezier(.2, .8, .2, 1) both;   /* 팝 등장 (기존 키프레임 재사용) */
+}
+.pause-board-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+.pause-banner {
+  position: absolute;
+  left: 50%;
+  top: -6%;                    /* 성공 배너와 동일 위치 */
+  transform: translateX(-50%);
+  width: 51%;                  /* 성공 배너(success-title-banner)와 동일 렌더 크기 */
+  height: auto;
+  z-index: 2;
+  filter: drop-shadow(1px 3px 4px rgba(0, 0, 0, 0.5));
+}
+/* 버튼 영역: 양피지 안쪽 (세로 배분) */
+.pause-body {
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  top: 18%;
+  bottom: 9%;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+}
+.pause-btn {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+/* 위계: 이어하기(주 버튼) 크게 + 다시하기·마을로(보조) 작게 동일 → "주 버튼 1 + 보조 2" */
+.pause-btn-continue { width: 74%; }
+.pause-btn-retry    { width: 54%; }
+.pause-btn-town     { width: 54%; }
+.pause-btn img {
+  width: 100%;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+}
+.pause-btn:active { transform: scale(0.95); }
+@media (hover: hover) {
+  .pause-btn:hover { transform: scale(1.03); }
+}

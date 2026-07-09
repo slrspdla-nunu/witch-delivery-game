@@ -371,27 +371,66 @@
     bindTap(els.shield, useShield);
   }
 
+  function openPause() {
+    if (state.paused || !state.running) return;
+    state.paused = true;
+    state.direction = 0;
+    state.horizontalDirection = 0;
+    state.controlPointerId = null;
+    syncDirectionButtonImages();
+    syncHorizontalButtonImages();
+    syncPauseButtonImage();
+    gameBgm.pause();                             // 일시정지 중엔 음악도 멈춤
+    document.body.classList.add("pause-view");   // 일시정지 모달 표시
+  }
+
+  function resumeGame() {
+    if (!state.paused) return;
+    state.paused = false;
+    document.body.classList.remove("pause-view");
+    syncPauseButtonImage();
+    const bgmPlay = gameBgm.play();              // 재개 시 음악 다시 재생
+    if (bgmPlay && typeof bgmPlay.catch === "function") bgmPlay.catch(() => {});
+    state.lastTime = performance.now();
+    const activeRunId = state.runId;
+    requestAnimationFrame((now) => {
+      if (state.running && !state.paused && state.runId === activeRunId) tick(now);
+    });
+  }
+
   function bindPauseButton() {
     if (!els.pause) return;
     els.pause.addEventListener("click", () => {
       if (!state.running) return;
-      state.paused = !state.paused;
-      state.direction = 0;
-      state.horizontalDirection = 0;
-      state.controlPointerId = null;
-      syncDirectionButtonImages();
-      syncHorizontalButtonImages();
-      syncPauseButtonImage();
-
-      if (!state.paused) {
-        state.lastTime = performance.now();
-        const activeRunId = state.runId;
-        requestAnimationFrame((now) => {
-          if (state.running && !state.paused && state.runId === activeRunId) tick(now);
-        });
-      }
+      if (state.paused) resumeGame();
+      else openPause();
     });
     syncPauseButtonImage();
+  }
+
+  function bindPauseMenu() {
+    const root = document.querySelector(".pause-screen");
+    if (!root) return;
+    // 이어하기 — 게임 재개
+    root.querySelector('[data-pause-action="continue"]')?.addEventListener("click", resumeGame);
+    // 다시하기 — 라운드 재시작
+    root.querySelector('[data-pause-action="retry"]')?.addEventListener("click", () => {
+      const name = document.body.dataset.selectedRequest || "케이크 배달";
+      state.paused = false;
+      document.body.classList.remove("pause-view");
+      start(name);
+    });
+    // 마을로 돌아가기 — 라운드 종료 후 마을(메인 UI)로
+    root.querySelector('[data-pause-action="town"]')?.addEventListener("click", () => {
+      state.paused = false;
+      state.running = false;
+      state.phase = "idle";
+      clearWorldObjects();
+      stopGameBgm();
+      document.body.classList.remove("pause-view", "play-view", "play-landscape-fallback");
+      if (window.__bgm) { try { window.__bgm.play(); } catch (_) {} }
+      document.body.classList.add("game-ui");
+    });
   }
 
   function bindKeyboardControls() {
@@ -709,6 +748,34 @@
     }
   }
 
+  // 결과 화면 효과음 — Web Audio로 합성(파일 불필요). 게임플레이 중 컨텍스트가 이미 언락됨.
+  function playResultSound(kind) {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    try {
+      effectAudioContext ||= new AudioContext();
+      if (effectAudioContext.state === "suspended") effectAudioContext.resume().catch(() => {});
+    } catch (_) {
+      return;
+    }
+
+    if (kind === "fail") {
+      // 부드럽고 쓸쓸한 하강 단조 (A4→F4→D4) + 낮게 가라앉는 잔향
+      [440, 349.23, 293.66].forEach((f, i) =>
+        window.setTimeout(() => playTone(f, f, 0.12, 0.7, "sine"), i * 230)
+      );
+      window.setTimeout(() => playTone(220, 208, 0.09, 1.15, "sine"), 3 * 230 + 60);
+      return;
+    }
+
+    // success: 따뜻한 상승 아르페지오 (C5–E5–G5–C6) + 은은한 고음 반짝
+    [523.25, 659.25, 783.99, 1046.5].forEach((f, i) =>
+      window.setTimeout(() => playTone(f, f, 0.14, 0.5, "triangle"), i * 95)
+    );
+    window.setTimeout(() => playTone(1567.98, 1567.98, 0.06, 0.42, "sine"), 95 * 4 + 40);
+    window.setTimeout(() => playTone(2093, 2093, 0.045, 0.5, "sine"), 95 * 4 + 170);
+  }
+
   function isCollidingWithLuna(obstacle) {
     if (!els.luna || !obstacle.el) return false;
 
@@ -917,7 +984,7 @@
     state.controlPointerId = null;
     resetSkillState();
     syncPauseButtonImage();
-    stopGameBgm();
+    fadeGameBgmTo(0.3, 600);   // 실패 결과 화면까지 게임 BGM 계속 재생(살짝 낮춤)
     clearWorldObjects();
     if (els.luna) {
       els.luna.classList.remove("is-hit", "is-dashing", "is-shielded", "is-shield-break");
@@ -982,6 +1049,7 @@
     });
 
     document.body.classList.add("result-success");
+    window.setTimeout(() => playResultSound("success"), 550);   // 배너 "배달 성공!" 뜰 때 차임
   }
 
   function leaveSuccessScreen() {
@@ -1017,6 +1085,7 @@
     set('[data-fail-reward="gem"]', String(failGem));
     set('[data-fail-reward="item"]', "0");
     document.body.classList.add("result-failure");
+    window.setTimeout(() => playResultSound("fail"), 900);   // 배너 "배달 실패…" 뜰 때 가라앉는 음
   }
 
   function leaveFailureScreen() {
@@ -1227,7 +1296,7 @@
 
     await wait(450);
     if (state.phase !== "arrival") return;
-    stopGameBgm();
+    fadeGameBgmTo(0.34, 600);   // 게임 BGM을 끊지 않고 살짝 낮춰 결과 화면까지 계속 재생
     showSuccessScreen();
   }
 
@@ -1352,6 +1421,7 @@
     setupMovementControls();
     bindSkillButtons();
     bindPauseButton();
+    bindPauseMenu();
     bindSuccessButtons();
     bindFailureButtons();
     bindKeyboardControls();
