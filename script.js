@@ -42,6 +42,11 @@ document.addEventListener("DOMContentLoaded", () => {
           showToast("아직 잠긴 의뢰");
           return;
         }
+        // 데모: 현재 '케이크 배달'만 진행 가능, 나머지는 클릭해도 진행 안 됨
+        if (name !== "케이크 배달") {
+          showToast("지금은 케이크 배달만 가능");
+          return;
+        }
         document.body.dataset.selectedRequest = name;
         document.body.classList.remove("request-view");
         document.body.classList.add("play-view");

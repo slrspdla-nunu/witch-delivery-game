@@ -41,7 +41,7 @@ body {
   width: min(100vw, 100dvh * 390 / 844, 390px);
   height: auto;
   flex: none;
-  /* 배경이 뷰포트를 꽉 채우므로, 틀 경계에서 자르지 않고 루나가 배경 위로 이어지게 함.
+  /* 배경이 뷰포트를 꽉 채우므로, 틀 경계에서 자르지 않고 요소가 배경 위로 이어지게 함.
      화면 밖으로 나가는 부분은 body(overflow:hidden)가 잘라줌. */
   overflow: visible;
   box-shadow: 0 0 12px rgba(0, 0, 0, 0.4);
@@ -75,8 +75,8 @@ body.play-view .screen {
   }
 }
 
-/* 배경만 뷰포트 전체를 덮어 꽉 채움 (좁은 .screen 틀을 벗어나 살짝 확대되어 들어감).
-   .screen 이 딱 맞는 폰에선 뷰포트=틀 이라 그대로, 넓적한 폰에선 배경이 여백까지 채움. */
+/* 배경을 뷰포트 전체(창 크기)로 채움 → 양옆 어두운 여백 없이 끝까지 꽉 참.
+   콘텐츠(.screen 안 요소들)는 비율 고정 프레임에 중앙 배치되어 안 늘어남. */
 .bg {
   position: fixed;
   inset: 0;
@@ -87,21 +87,6 @@ body.play-view .screen {
   z-index: 0;
   user-select: none;
   pointer-events: none;
-}
-
-/* 넓은 화면(PC·태블릿): 배경을 뷰포트가 아니라 390x844 프레임 안에 가둬,
-   폰처럼 가운데 정렬된 화면 + 어두운 여백으로 보이게 함.
-   폰(<=480px)에서는 위의 풀블리드 배경을 그대로 유지. */
-@media (min-width: 481px) {
-  .bg {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-  }
-  .screen {
-    overflow: hidden;         /* 프레임 밖으로 넘치는 캐릭터가 어두운 여백에 걸리지 않게 */
-    border-radius: 18px;      /* 폰 화면 느낌 */
-  }
 }
 
 /* ---- 지평선 태양빛 (배경 노을 위 발광 오버레이) ---- */
@@ -684,12 +669,13 @@ body.play-view .request-screen {
   isolation: isolate;
   color: #302942;
   font-family: 'Ridibatang', "Noto Sans KR", "Malgun Gothic", serif;
-  /* 배경 오버레이는 body::before(뷰포트 전체 fixed)에서 깔림 — 여기선 투명 */
+  /* 어두운 배경 오버레이는 body.request-view::before(뷰포트 전체 fixed)가 깔음 — 콘텐츠 컨테이너인 여긴 투명.
+     콘텐츠(카드·제목)는 비율 고정 프레임 안에 배치되어 안 늘어남. */
   background: transparent;
 }
 
-/* 어두운 배경 오버레이 — .screen(레터박스) 안이 아니라 뷰포트 전체를 덮어
-   어떤 화면 크기(예: 375x667)에서도 오버레이가 잘리지 않음. 의뢰 화면 콘텐츠(z12) 아래. */
+/* 어두운 배경 오버레이 — 뷰포트 전체(창 크기)를 덮음. 의뢰 콘텐츠(z12)는 그 위 프레임 안에 중앙 배치.
+   cover 라 이미지가 왜곡 없이 창을 채움(잘림만 발생). */
 body.request-view::before {
   content: "";
   position: fixed;
@@ -1061,16 +1047,6 @@ body.request-view .request-screen {
   display: grid;
   place-items: center;
   opacity: 0;
-  pointer-events: none;
-}
-
-body.request-view::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 11;
-  background:
-    linear-gradient(180deg, rgba(20, 17, 48, 0.86) 0%, rgba(30, 24, 66, 0.68) 40%, rgba(12, 10, 30, 0.92) 100%);
   pointer-events: none;
 }
 
