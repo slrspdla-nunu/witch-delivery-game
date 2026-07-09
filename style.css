@@ -2052,18 +2052,18 @@ body.result-success .success-screen {
 .success-luna {
   position: absolute;
   left: -1%;
-  bottom: 9%;
-  height: 89%;
+  bottom: 8%;
+  height: 92%;
   width: auto;
   object-fit: contain;
   pointer-events: none;
-  z-index: 3;               /* 보드 앞으로 → 왼쪽 가장자리를 살짝 가림 */
+  /* z-index 없음 → 보드가 루나 오른쪽(고양이)을 덮고, 마녀는 왼쪽에 보임 */
   filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.55));
 }
 
 .success-board {
   position: relative;
-  height: 76%;
+  height: 80%;
   aspect-ratio: 1628 / 921;
   margin-right: 2%;
   flex: none;
