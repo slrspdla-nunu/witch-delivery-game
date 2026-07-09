@@ -2051,9 +2051,9 @@ body.result-success .success-screen {
 
 .success-luna {
   position: absolute;
-  left: -2%;
-  bottom: 0;
-  height: 82%;
+  left: -1%;
+  bottom: 9%;
+  height: 88%;
   width: auto;
   object-fit: contain;
   pointer-events: none;
@@ -2079,9 +2079,9 @@ body.result-success .success-screen {
 .success-banner {
   position: absolute;
   left: 50%;
-  top: -9%;
+  top: -8%;
   transform: translateX(-50%);
-  width: 80%;
+  width: 58%;
   height: auto;
   z-index: 2;
   filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45));
@@ -2090,9 +2090,9 @@ body.result-success .success-screen {
 /* 보드 양피지 안쪽 콘텐츠 (세로 배분) */
 .success-body {
   position: absolute;
-  left: 7%;
-  right: 7%;
-  top: 11%;
+  left: 8%;
+  right: 9%;
+  top: 12%;
   bottom: 4.5%;
   z-index: 1;
   display: flex;
