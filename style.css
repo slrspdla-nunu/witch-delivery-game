@@ -2058,7 +2058,7 @@ body.result-success .success-screen {
   object-fit: contain;
   pointer-events: none;
   z-index: 5;               /* 메인 보드(프레임) 위에 오도록 */
-  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.55));
+  filter: drop-shadow(2px 4px 4px rgba(0, 0, 0, 0.55));
 }
 
 .success-board {
@@ -2085,7 +2085,7 @@ body.result-success .success-screen {
   width: 45%;
   height: auto;
   z-index: 2;
-  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45));
+  filter: drop-shadow(1px 2px 2px rgba(0, 0, 0, 0.6));
 }
 
 /* 보드 양피지 안쪽 콘텐츠 (세로 배분) */
