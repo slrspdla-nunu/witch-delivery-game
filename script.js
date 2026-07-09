@@ -21,6 +21,10 @@ document.addEventListener("DOMContentLoaded", () => {
     btn.addEventListener("click", () => {
       const name = btn.dataset.name;
       console.log(`[클릭] ${name}`);
+      // 게임 조작 버튼(이동/스킬/보호막/일시정지)은 game.js가 처리 — '준비 중' 토스트 띄우지 않음
+      if (btn.classList.contains("play-control-btn") || btn.classList.contains("play-pause")) {
+        return;
+      }
       if (btn.classList.contains("start-btn")) {
         document.body.classList.add("game-ui");
         return;
