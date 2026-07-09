@@ -2051,13 +2051,13 @@ body.result-success .success-screen {
 
 .success-luna {
   position: absolute;
-  left: -1%;
+  left: 3%;
   bottom: 8%;
   height: 92%;
   width: auto;
   object-fit: contain;
   pointer-events: none;
-  /* z-index 없음 → 보드가 루나 오른쪽(고양이)을 덮고, 마녀는 왼쪽에 보임 */
+  z-index: 5;               /* 메인 보드(프레임) 위에 오도록 */
   filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.55));
 }
 
