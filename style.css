@@ -2091,10 +2091,10 @@ body.result-success .success-screen {
 /* 보드 양피지 안쪽 콘텐츠 (세로 배분) */
 .success-body {
   position: absolute;
-  left: 8%;
+  left: 9%;
   right: 9%;
-  top: 10%;
-  bottom: 4%;
+  top: 11%;
+  bottom: 8%;
   z-index: 1;
   display: flex;
   flex-direction: column;
