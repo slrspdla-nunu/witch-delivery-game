@@ -2025,3 +2025,197 @@ body.started.game-ui .subtitle {
   opacity: 0;
   pointer-events: none;
 }
+
+/* ===== 배달 성공 결과 화면 (가로 landscape) ===== */
+.success-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+  overflow: hidden;
+  font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
+  background:
+    linear-gradient(180deg, rgba(20, 14, 40, 0.82), rgba(10, 7, 24, 0.9)),
+    url("image/play_background_skycity_panorama.png") center / cover no-repeat,
+    #140f28;
+}
+body.result-success .success-screen {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.success-luna {
+  position: absolute;
+  left: -2%;
+  bottom: 0;
+  height: 82%;
+  width: auto;
+  object-fit: contain;
+  pointer-events: none;
+  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.55));
+}
+
+.success-board {
+  position: relative;
+  height: 88%;
+  aspect-ratio: 1628 / 921;
+  margin-right: 1.5%;
+  flex: none;
+  container-type: inline-size;
+}
+.success-board-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+}
+.success-banner {
+  position: absolute;
+  left: 50%;
+  top: -9%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: auto;
+  z-index: 2;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45));
+}
+
+/* 보드 양피지 안쪽 콘텐츠 (세로 배분) */
+.success-body {
+  position: absolute;
+  left: 7%;
+  right: 7%;
+  top: 11%;
+  bottom: 4.5%;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.success-subtitle {
+  color: #4a3a52;
+  font-weight: 800;
+  font-size: 3cqw;
+  text-align: center;
+  line-height: 1;
+}
+.success-stars {
+  display: flex;
+  gap: 1.4cqw;
+}
+.success-stars .s-star {
+  width: 7cqw;
+  height: auto;
+  filter: drop-shadow(0 2px 4px rgba(120, 70, 20, 0.4));
+}
+.success-stars .s-star.is-empty {
+  filter: grayscale(1) brightness(0.72);
+  opacity: 0.5;
+}
+
+.success-stats {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 7%;
+  row-gap: 1.1cqw;
+  padding: 0 2%;
+}
+.success-stat {
+  display: flex;
+  align-items: center;
+  gap: 2.5%;
+  font-size: 2.55cqw;
+  white-space: nowrap;
+}
+.st-label { color: #5c4b60; font-weight: 700; }
+.st-val { color: #2c2338; font-weight: 800; margin-left: auto; }
+.st-icon { width: 3.5cqw; height: 3.5cqw; object-fit: contain; }
+.st-emoji { font-size: 2.7cqw; line-height: 1; }
+.st-badge {
+  font-size: 1.9cqw;
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(180deg, #8a5fd6, #593a9e);
+  padding: 0.28em 0.5em;
+  border-radius: 5px;
+  line-height: 1;
+}
+
+.success-divider {
+  width: auto;
+  height: 2.4cqw;
+}
+.success-rewards-title {
+  color: #4a3a52;
+  font-weight: 800;
+  font-size: 2.6cqw;
+  line-height: 1;
+}
+.success-reward-slots {
+  display: flex;
+  gap: 3cqw;
+}
+.success-slot {
+  position: relative;
+  width: 9.3cqw;
+  aspect-ratio: 998 / 1024;
+}
+.slot-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.slot-icon {
+  position: absolute;
+  left: 15%;
+  top: 8%;
+  width: 70%;
+  height: 62%;
+  object-fit: contain;
+}
+.slot-count {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: 7%;
+  text-align: center;
+  color: #f4ecd0;
+  font-weight: 800;
+  font-size: 2.1cqw;
+  line-height: 1;
+  text-shadow: 0 1px 2px rgba(20, 12, 30, 0.8);
+}
+
+.success-buttons {
+  display: flex;
+  gap: 3cqw;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+}
+.success-btn {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  flex: 0 1 39%;
+  transition: transform 0.1s ease;
+}
+.success-btn img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.success-btn:active { transform: scale(0.96); }

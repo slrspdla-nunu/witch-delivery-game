@@ -69,6 +69,15 @@
     shieldTime: 0,
     shieldCooldown: 0,
     shieldCharges: 0,
+    hitCount: 0,
+  };
+
+  // 의뢰별 보상 (의뢰 선택 카드와 동일)
+  const REQUEST_REWARDS = {
+    "케이크 배달": { gold: 1200, gem: 20, item: 1, itemIcon: "image/ui_request_icon_cake.png" },
+    "고양이 배달": { gold: 1600, gem: 25, item: 1, itemIcon: "image/ui_request_icon_cat.png" },
+    "마력 포션 배송": { gold: 1100, gem: 15, item: 1, itemIcon: "image/ui_request_icon_potion.png" },
+    "드래곤 알 배달": { gold: 2500, gem: 40, item: 1, itemIcon: "image/ui_request_icon_egg.png" },
   };
 
   const els = {};
@@ -767,6 +776,7 @@
     if (state.invincibleTime > 0) return;
     if (breakShield()) return;
 
+    state.hitCount += 1;
     state.hp = Math.max(0, state.hp - CROW_DAMAGE);
     state.packageCondition = Math.max(0, state.packageCondition - PACKAGE_DAMAGE);
     state.invincibleTime = INVINCIBLE_DURATION;
@@ -920,6 +930,73 @@
       packageCondition: Math.round(state.packageCondition),
       timeLeft: Math.ceil(state.timeLeft),
       distance: Math.round(state.distance),
+    });
+  }
+
+  function formatClock(seconds) {
+    const total = Math.max(0, Math.ceil(seconds));
+    const m = Math.floor(total / 60);
+    const s = total % 60;
+    return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  }
+
+  function computeStars() {
+    const hp = state.hp;
+    const hits = state.hitCount;
+    if (hits <= 2 && hp >= 55) return 3;
+    if (hits <= 5 && hp >= 25) return 2;
+    return 1;
+  }
+
+  function showSuccessScreen() {
+    const root = document.querySelector(".success-screen");
+    if (!root) return;
+    const name = document.body.dataset.selectedRequest || "케이크 배달";
+    const reward = REQUEST_REWARDS[name] || REQUEST_REWARDS["케이크 배달"];
+    const hp = Math.round(state.hp);
+    const hits = state.hitCount;
+    const accuracy = Math.round(clamp(100 - hits * 4, 60, 100));
+    const exp = Math.round(reward.gold / 5);
+
+    const set = (sel, val) => { const e = root.querySelector(sel); if (e) e.textContent = val; };
+    set("[data-success-subtitle]", `${name} 완료`);
+    set('[data-stat="gold"]', reward.gold.toLocaleString());
+    set('[data-stat="time"]', formatClock(state.timeLeft));
+    set('[data-stat="exp"]', String(exp));
+    set('[data-stat="accuracy"]', `${accuracy}%`);
+    set('[data-stat="hp"]', `${hp}%`);
+    set('[data-stat="hits"]', `${hits}회`);
+    set('[data-reward="gold"]', reward.gold.toLocaleString());
+    set('[data-reward="gem"]', String(reward.gem));
+    set('[data-reward="item"]', String(reward.item));
+    const itemIcon = root.querySelector('[data-reward="itemIcon"]');
+    if (itemIcon && reward.itemIcon) itemIcon.setAttribute("src", reward.itemIcon);
+
+    const stars = computeStars();
+    root.querySelectorAll(".s-star").forEach((star, i) => {
+      star.classList.toggle("is-empty", i >= stars);
+    });
+
+    document.body.classList.add("result-success");
+  }
+
+  function leaveSuccessScreen() {
+    document.body.classList.remove("result-success", "play-view", "play-landscape-fallback");
+    stopGameBgm();
+    state.phase = "idle";
+    if (window.__bgm) { try { window.__bgm.play(); } catch (_) {} }
+  }
+
+  function bindSuccessButtons() {
+    const root = document.querySelector(".success-screen");
+    if (!root) return;
+    root.querySelector('[data-success-action="town"]')?.addEventListener("click", () => {
+      leaveSuccessScreen();
+      document.body.classList.add("game-ui");
+    });
+    root.querySelector('[data-success-action="next"]')?.addEventListener("click", () => {
+      leaveSuccessScreen();
+      document.body.classList.add("game-ui", "request-view");
     });
   }
 
@@ -1103,11 +1180,14 @@
     console.log("[도착 연출 완료]", {
       request: document.body.dataset.selectedRequest,
       hp: Math.round(state.hp),
-      mp: Math.round(state.mp),
-      packageCondition: Math.round(state.packageCondition),
+      hitCount: state.hitCount,
       timeLeft: Math.ceil(state.timeLeft),
-      distance: Math.round(state.distance),
     });
+
+    await wait(450);
+    if (state.phase !== "arrival") return;
+    stopGameBgm();
+    showSuccessScreen();
   }
 
   function tick(now) {
@@ -1188,6 +1268,7 @@
     syncPauseButtonImage();
     state.hp = 100;
     state.mp = 100;
+    state.hitCount = 0;
     state.timeLeft = DELIVERY_TIME_LIMIT;
     state.distance = 0;
     state.totalDistance = 1200;
@@ -1230,6 +1311,7 @@
     setupMovementControls();
     bindSkillButtons();
     bindPauseButton();
+    bindSuccessButtons();
     bindKeyboardControls();
     bindStageDrag();
     window.addEventListener("resize", syncLandscapeFallback);

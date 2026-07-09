@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>마녀 배달부의 비상착륙</title>
-  <link rel="stylesheet" href="style.css?v=20260709b" />
+  <link rel="stylesheet" href="style.css?v=20260709c" />
   <script src="js/pixi.min.js"></script>
 </head>
 <body>
@@ -319,13 +319,89 @@
         </button>
       </div>
     </section>
+
+    <!-- 배달 성공 결과 화면 (가로) -->
+    <section class="success-screen" aria-label="배달 성공 결과">
+      <img class="success-luna" src="image/luna_game_success_cat.png" alt="" aria-hidden="true" />
+      <div class="success-board">
+        <img class="success-board-bg" src="image/success/success-board-panel.png" alt="" aria-hidden="true" />
+        <img class="success-banner" src="image/success/success-title-banner.png" alt="배달 성공!" />
+        <div class="success-body">
+          <div class="success-subtitle" data-success-subtitle>케이크 배달 완료</div>
+          <div class="success-stars" data-success-stars>
+            <img class="s-star" src="image/success/success-star.png" alt="" aria-hidden="true" />
+            <img class="s-star" src="image/success/success-star.png" alt="" aria-hidden="true" />
+            <img class="s-star" src="image/success/success-star.png" alt="" aria-hidden="true" />
+          </div>
+          <div class="success-stats">
+            <div class="success-stat">
+              <span class="st-label">획득 골드</span>
+              <img class="st-icon" src="image/success/success-gold-icon.png" alt="" aria-hidden="true" />
+              <span class="st-val" data-stat="gold">1,200</span>
+            </div>
+            <div class="success-stat">
+              <span class="st-label">남은 시간</span>
+              <span class="st-emoji">⌛</span>
+              <span class="st-val" data-stat="time">01:02</span>
+            </div>
+            <div class="success-stat">
+              <span class="st-label">획득 경험치</span>
+              <span class="st-badge">EXP</span>
+              <span class="st-val" data-stat="exp">240</span>
+            </div>
+            <div class="success-stat">
+              <span class="st-label">정확도</span>
+              <span class="st-emoji">🎯</span>
+              <span class="st-val" data-stat="accuracy">96%</span>
+            </div>
+            <div class="success-stat">
+              <span class="st-label">남은 체력</span>
+              <span class="st-emoji">❤️</span>
+              <span class="st-val" data-stat="hp">85%</span>
+            </div>
+            <div class="success-stat">
+              <span class="st-label">충돌 횟수</span>
+              <span class="st-emoji">💥</span>
+              <span class="st-val" data-stat="hits">1회</span>
+            </div>
+          </div>
+          <img class="success-divider" src="image/success/success-divider.png" alt="" aria-hidden="true" />
+          <div class="success-rewards-title">획득 보상</div>
+          <div class="success-reward-slots">
+            <div class="success-slot">
+              <img class="slot-frame" src="image/success/success-reward-slot.png" alt="" aria-hidden="true" />
+              <img class="slot-icon" src="image/ui_top_icon_coin.png" alt="" aria-hidden="true" />
+              <span class="slot-count" data-reward="gold">1,200</span>
+            </div>
+            <div class="success-slot">
+              <img class="slot-frame" src="image/success/success-reward-slot.png" alt="" aria-hidden="true" />
+              <img class="slot-icon" src="image/ui_top_icon_gem.png" alt="" aria-hidden="true" />
+              <span class="slot-count" data-reward="gem">20</span>
+            </div>
+            <div class="success-slot">
+              <img class="slot-frame" src="image/success/success-reward-slot.png" alt="" aria-hidden="true" />
+              <img class="slot-icon" data-reward="itemIcon" src="image/ui_request_icon_cake.png" alt="" aria-hidden="true" />
+              <span class="slot-count" data-reward="item">1</span>
+            </div>
+          </div>
+          <div class="success-buttons">
+            <button class="success-btn success-btn-town" data-success-action="town" aria-label="마을로 돌아가기">
+              <img src="image/success/success-button-town.png" alt="마을로 돌아가기" />
+            </button>
+            <button class="success-btn success-btn-next" data-success-action="next" aria-label="다음 의뢰로 이동">
+              <img src="image/success/success-button-next.png" alt="다음 의뢰로 이동" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
 
-  <script src="script.js?v=20260709b"></script>
-  <script src="js/game.js?v=20260709b"></script>
-  <script src="js/luna-mesh.js?v=20260709b"></script>
-  <script src="js/nero-mesh.js?v=20260709b"></script>
-  <script src="js/bgm.js?v=20260709b"></script>
-  <script src="js/splash.js?v=20260709b"></script>
+  <script src="script.js?v=20260709c"></script>
+  <script src="js/game.js?v=20260709c"></script>
+  <script src="js/luna-mesh.js?v=20260709c"></script>
+  <script src="js/nero-mesh.js?v=20260709c"></script>
+  <script src="js/bgm.js?v=20260709c"></script>
+  <script src="js/splash.js?v=20260709c"></script>
 </body>
 </html>
