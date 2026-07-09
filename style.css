@@ -2104,17 +2104,17 @@ body.result-success .success-screen {
 
 .success-subtitle {
   color: #4a3a52;
-  font-weight: 800;
-  font-size: 3cqw;
+  font-weight: 700;
+  font-size: 2.3cqw;
   text-align: center;
   line-height: 1;
 }
 .success-stars {
   display: flex;
-  gap: 1.4cqw;
+  gap: 1.8cqw;
 }
 .success-stars .s-star {
-  width: 7cqw;
+  width: 10.5cqw;
   height: auto;
   filter: drop-shadow(0 2px 4px rgba(120, 70, 20, 0.4));
 }
@@ -2159,16 +2159,16 @@ body.result-success .success-screen {
 .success-rewards-title {
   color: #4a3a52;
   font-weight: 800;
-  font-size: 2.6cqw;
+  font-size: 2.9cqw;
   line-height: 1;
 }
 .success-reward-slots {
   display: flex;
-  gap: 3cqw;
+  gap: 3.5cqw;
 }
 .success-slot {
   position: relative;
-  width: 9.3cqw;
+  width: 13cqw;
   aspect-ratio: 998 / 1024;
 }
 .slot-frame {
@@ -2194,7 +2194,7 @@ body.result-success .success-screen {
   text-align: center;
   color: #f4ecd0;
   font-weight: 800;
-  font-size: 2.1cqw;
+  font-size: 2.6cqw;
   line-height: 1;
   text-shadow: 0 1px 2px rgba(20, 12, 30, 0.8);
 }
