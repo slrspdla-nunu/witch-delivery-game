@@ -931,6 +931,10 @@
       timeLeft: Math.ceil(state.timeLeft),
       distance: Math.round(state.distance),
     });
+    if (result === "fail") {
+      // 실패 순간을 잠시 보여준 뒤 결과 화면 등장
+      setTimeout(() => showFailureScreen(), 700);
+    }
   }
 
   function formatClock(seconds) {
@@ -997,6 +1001,43 @@
     root.querySelector('[data-success-action="next"]')?.addEventListener("click", () => {
       leaveSuccessScreen();
       document.body.classList.add("game-ui", "request-view");
+    });
+  }
+
+  function showFailureScreen() {
+    const root = document.querySelector(".failure-screen");
+    if (!root) return;
+    const name = document.body.dataset.selectedRequest || "케이크 배달";
+    const reward = REQUEST_REWARDS[name] || REQUEST_REWARDS["케이크 배달"];
+    // 실패 위로금(감액 보상) — 배달물은 파손되어 0개
+    const failGold = Math.max(0, Math.round(reward.gold * 0.25));
+    const failGem = Math.max(0, Math.round(reward.gem * 0.25));
+    const set = (sel, val) => { const e = root.querySelector(sel); if (e) e.textContent = val; };
+    set('[data-fail-reward="gold"]', failGold.toLocaleString());
+    set('[data-fail-reward="gem"]', String(failGem));
+    set('[data-fail-reward="item"]', "0");
+    document.body.classList.add("result-failure");
+  }
+
+  function leaveFailureScreen() {
+    document.body.classList.remove("result-failure", "play-view", "play-landscape-fallback");
+    stopGameBgm();
+    state.phase = "idle";
+    if (window.__bgm) { try { window.__bgm.play(); } catch (_) {} }
+  }
+
+  function bindFailureButtons() {
+    const root = document.querySelector(".failure-screen");
+    if (!root) return;
+    root.querySelector('[data-fail-action="town"]')?.addEventListener("click", () => {
+      leaveFailureScreen();
+      document.body.classList.add("game-ui");
+    });
+    root.querySelector('[data-fail-action="retry"]')?.addEventListener("click", () => {
+      const name = document.body.dataset.selectedRequest || "케이크 배달";
+      document.body.classList.remove("result-failure");
+      document.body.classList.add("play-view");
+      start(name);
     });
   }
 
@@ -1312,6 +1353,7 @@
     bindSkillButtons();
     bindPauseButton();
     bindSuccessButtons();
+    bindFailureButtons();
     bindKeyboardControls();
     bindStageDrag();
     window.addEventListener("resize", syncLandscapeFallback);

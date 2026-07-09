@@ -2059,6 +2059,75 @@ body.result-success .success-screen {
   pointer-events: none;
   z-index: 5;               /* 메인 보드(프레임) 위에 오도록 */
   filter: drop-shadow(2px 4px 4px rgba(0, 0, 0, 0.55));
+  animation: successLunaFloat 3.4s ease-in-out infinite;   /* 동동 떠다님 */
+}
+@keyframes successLunaFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-2.4%); }
+}
+
+/* 루나 위로 반짝이는 보라빛 반짝이 트레일 */
+.success-sparkles {
+  position: absolute;
+  inset: 0;
+  z-index: 6;               /* 루나(5) 위에 반짝이 오도록 */
+  pointer-events: none;
+  container-type: size;     /* 자식 크기를 화면 최소변(cqmin) 기준으로 */
+}
+.success-sparkles i {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--s);
+  height: var(--s);
+  margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2);   /* 지정 좌표를 중심으로 */
+  background: var(--c, #d98cff);
+  opacity: 0;
+  will-change: transform, opacity;
+}
+/* 은은하게 번지는 발광 안개 — 여러 곳에 배치 가능 */
+.success-sparkles .sp-glow {
+  width: var(--gs, 30cqmin);
+  height: var(--gs, 30cqmin);
+  margin: 0;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(closest-side,
+              rgba(199, 125, 255, 0.32),
+              rgba(176, 97, 240, 0.14) 45%,
+              rgba(176, 97, 240, 0) 75%);
+  clip-path: none;
+  filter: blur(2px);
+  opacity: 0.6;
+  animation: successGlow var(--d, 3.4s) ease-in-out var(--delay, 0s) infinite;
+}
+@keyframes successGlow {
+  0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(0.9); }
+  50%      { opacity: 0.85; transform: translate(-50%, -50%) scale(1.08); }
+}
+/* 큰 4갈래 반짝이별 — 떠오르며 반짝 */
+.success-sparkles .sp-star {
+  /* 4갈래 별 (오목한 곡선 느낌의 뾰족별) */
+  clip-path: polygon(50% 0%, 58% 42%, 100% 50%, 58% 58%, 50% 100%, 42% 58%, 0% 50%, 42% 42%);
+  filter: drop-shadow(0 0 calc(var(--s) * 0.45) var(--c, #d98cff));
+  animation: successStar var(--d, 2.8s) ease-in-out var(--delay, 0s) infinite;
+}
+@keyframes successStar {
+  0%   { opacity: 0; transform: translate(0, 0) scale(0.2) rotate(0deg); }
+  20%  { opacity: 1; transform: translate(calc(var(--dx) * 0.2), calc(var(--dy) * -0.2)) scale(1) rotate(20deg); }
+  55%  { opacity: 0.85; transform: translate(calc(var(--dx) * 0.6), calc(var(--dy) * -0.6)) scale(0.8) rotate(45deg); }
+  100% { opacity: 0; transform: translate(var(--dx), calc(var(--dy) * -1)) scale(0.3) rotate(80deg); }
+}
+/* 작은 동그란 글린트 — 부드럽게 깜빡이며 흩날림 */
+.success-sparkles .sp-glint {
+  border-radius: 50%;
+  background: radial-gradient(closest-side, #fff, var(--c, #d98cff) 55%, rgba(255,255,255,0) 100%);
+  filter: drop-shadow(0 0 calc(var(--s) * 0.9) var(--c, #d98cff));
+  animation: successGlint var(--d, 2.2s) ease-in-out var(--delay, 0s) infinite;
+}
+@keyframes successGlint {
+  0%   { opacity: 0; transform: translate(0, 0) scale(0.3); }
+  25%  { opacity: 1; transform: translate(calc(var(--dx) * 0.3), calc(var(--dy) * -0.3)) scale(1); }
+  100% { opacity: 0; transform: translate(var(--dx), calc(var(--dy) * -1)) scale(0.4); }
 }
 
 .success-board {
@@ -2116,11 +2185,22 @@ body.result-success .success-screen {
 .success-stars .s-star {
   width: 9cqw;
   height: auto;
-  filter: drop-shadow(0 2px 4px rgba(120, 70, 20, 0.4));
+  filter: drop-shadow(0 2px 4px rgba(120, 70, 20, 0.4))
+          drop-shadow(0 0 5px rgba(255, 216, 130, 0.85));
+  animation: successStarGlow 2.2s ease-in-out infinite;
+}
+.success-stars .s-star:nth-child(2) { animation-delay: 0.35s; }
+.success-stars .s-star:nth-child(3) { animation-delay: 0.7s; }
+@keyframes successStarGlow {
+  0%, 100% { filter: drop-shadow(0 2px 4px rgba(120, 70, 20, 0.4))
+                     drop-shadow(0 0 4px rgba(255, 216, 130, 0.55)); }
+  50%      { filter: drop-shadow(0 2px 4px rgba(120, 70, 20, 0.4))
+                     drop-shadow(0 0 9px rgba(255, 228, 150, 1)); }
 }
 .success-stars .s-star.is-empty {
   filter: grayscale(1) brightness(0.72);
   opacity: 0.5;
+  animation: none;   /* 빈 별은 발광 없음 */
 }
 
 .success-stats {
@@ -2159,7 +2239,7 @@ body.result-success .success-screen {
 .success-rewards-title {
   color: #4a3a52;
   font-weight: 800;
-  font-size: 2.9cqw;
+  font-size: 2.5cqw;
   line-height: 1;
 }
 .success-reward-slots {
@@ -2180,10 +2260,10 @@ body.result-success .success-screen {
 }
 .slot-icon {
   position: absolute;
-  left: 15%;
-  top: 8%;
-  width: 70%;
-  height: 62%;
+  left: 10%;
+  top: 6%;
+  width: 80%;
+  height: 68%;
   object-fit: contain;
 }
 .slot-count {
@@ -2192,11 +2272,13 @@ body.result-success .success-screen {
   right: 8%;
   bottom: 7%;
   text-align: center;
-  color: #f4ecd0;
+  /* 메인 상단 재화(.top-currency)와 동일한 폰트·색·그림자 */
+  color: #ffe4a3;
+  font-family: 'Ridibatang', "Noto Sans KR", "Malgun Gothic", serif;
   font-weight: 800;
-  font-size: 2.6cqw;
+  font-size: 2cqw;
   line-height: 1;
-  text-shadow: 0 1px 2px rgba(20, 12, 30, 0.8);
+  text-shadow: 0 1px 2px rgba(45, 20, 35, 0.95);
 }
 
 .success-buttons {
@@ -2220,3 +2302,185 @@ body.result-success .success-screen {
   display: block;
 }
 .success-btn:active { transform: scale(0.96); }
+
+/* ===================== 배달 실패 화면 ===================== */
+/* 성공 화면과 동일 레이아웃 — 배경·무드만 차갑고 쓸쓸하게 */
+.failure-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 21;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+  overflow: hidden;
+  font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
+  background:
+    linear-gradient(180deg, rgba(12, 9, 26, 0.9), rgba(5, 4, 14, 0.95)),
+    url("image/play_background_skycity_panorama.png") center / cover no-repeat,
+    #0b0818;
+}
+.failure-screen::after {   /* 차갑고 쓸쓸한 비네트 (보드 뒤) */
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 62% 42%, transparent 42%, rgba(4, 4, 16, 0.6) 100%);
+}
+body.result-failure .failure-screen {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.failure-luna {
+  position: absolute;
+  left: 3%;
+  bottom: 8%;
+  height: 92%;
+  width: auto;
+  object-fit: contain;
+  pointer-events: none;
+  z-index: 5;
+  filter: drop-shadow(2px 4px 5px rgba(0, 0, 0, 0.62));
+  animation: successLunaFloat 3.4s ease-in-out infinite;   /* 성공 화면처럼 둥둥 */
+}
+
+/* 배경 날씨: 차가운 발광 + 천천히 떨어지는 눈물/빗방울 (보드 뒤) */
+.failure-weather {
+  position: absolute;
+  inset: 0;
+  z-index: 0;               /* 배경 위 · 보드(1)/루나(5) 아래 */
+  pointer-events: none;
+  container-type: size;
+}
+.failure-weather i { position: absolute; }
+.failure-weather .fw-glow {
+  left: var(--x);
+  top: var(--y);
+  width: var(--gs);
+  height: var(--gs);
+  transform: translate(-50%, -50%);
+  background: radial-gradient(closest-side,
+              rgba(120, 140, 205, 0.22),
+              rgba(88, 100, 165, 0.10) 45%,
+              transparent 75%);
+  filter: blur(2px);
+  opacity: 0.5;
+  animation: failGlow var(--d, 5s) ease-in-out var(--delay, 0s) infinite;
+}
+@keyframes failGlow {
+  0%, 100% { opacity: 0.32; }
+  50%      { opacity: 0.66; }
+}
+.failure-weather .fw-drop {
+  left: var(--x);
+  top: -12%;
+  width: var(--w, 0.4cqmin);
+  height: var(--h, 6cqmin);
+  border-radius: 50% / 22%;
+  background: linear-gradient(180deg,
+              rgba(206, 220, 255, 0) 0%,
+              rgba(210, 224, 255, 0.65) 50%,
+              rgba(236, 243, 255, 1) 100%);
+  filter: drop-shadow(0 0 1.5px rgba(200, 220, 255, 0.7));
+  opacity: 0;
+  animation: failDrop var(--d, 2s) linear var(--delay, 0s) infinite;
+}
+@keyframes failDrop {
+  0%   { transform: translateY(0); opacity: 0; }
+  8%   { opacity: 0.95; }
+  90%  { opacity: 0.95; }
+  100% { transform: translateY(122cqh); opacity: 0; }
+}
+
+.failure-board {
+  position: relative;
+  height: 80%;
+  aspect-ratio: 1624 / 914;
+  margin-right: 2%;
+  flex: none;
+  z-index: 1;
+  container-type: inline-size;
+}
+.failure-board-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+}
+.failure-banner {
+  position: absolute;
+  left: 50%;
+  top: -6%;
+  transform: translateX(-50%);
+  width: 46%;
+  height: auto;
+  z-index: 2;
+  filter: drop-shadow(1px 2px 3px rgba(0, 0, 0, 0.65));
+}
+
+.failure-body {
+  position: absolute;
+  left: 9%;
+  right: 9%;
+  top: 20%;
+  bottom: 12%;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+}
+.failure-stars {
+  display: flex;
+  gap: 1.8cqw;
+}
+.failure-stars .f-star {   /* 실패 = 별 미획득: 어둡게 */
+  width: 9cqw;
+  height: auto;
+  filter: grayscale(0.9) brightness(0.6) drop-shadow(0 2px 3px rgba(0, 0, 0, 0.5));
+  opacity: 0.7;
+}
+.failure-rewards-title {   /* 어두운 보드 위 → 밝은 글자 */
+  color: #e3d1c0;
+  font-weight: 800;
+  font-size: 2.5cqw;
+  line-height: 1;
+}
+.failure-reward-slots {
+  display: flex;
+  gap: 3.5cqw;
+}
+.failure-slot {
+  position: relative;
+  width: 13cqw;
+  aspect-ratio: 998 / 1022;
+}
+/* 슬롯 프레임/아이콘/숫자는 성공과 동일한 .slot-* 규칙 재사용 */
+
+.failure-buttons {
+  display: flex;
+  gap: 3cqw;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+}
+.failure-btn {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  flex: 0 1 39%;
+  transition: transform 0.1s ease;
+}
+.failure-btn img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.failure-btn:active { transform: scale(0.96); }
