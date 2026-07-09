@@ -2094,7 +2094,7 @@ body.result-success .success-screen {
   left: 9%;
   right: 9%;
   top: 20%;
-  bottom: 8%;
+  bottom: 12%;
   z-index: 1;
   display: flex;
   flex-direction: column;
