@@ -10,8 +10,8 @@
     { type: "hourglass", src: "image/game_item_hourglass.png", label: "모래시계" },
     { type: "potion", src: "image/game_item_potion.png", label: "포션" },
   ];
-  const LEFT_BOUNDARY = 6;
-  const RIGHT_BOUNDARY = 34;
+  const LEFT_BOUNDARY = 0;
+  const RIGHT_BOUNDARY = 50;   /* 왼쪽~중앙까지 이동. 오른쪽 절반은 장애물 반응 공간으로 남김 */
   const PASSIVE_BACK_DRIFT = 12;
   const CROW_DAMAGE = 18;
   const PACKAGE_DAMAGE = 12;

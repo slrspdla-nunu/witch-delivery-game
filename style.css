@@ -634,11 +634,13 @@ body.play-view .request-screen {
   transition: transform 0.12s ease, filter 0.12s ease;
 }
 
-.bottom-menu-myroom { left: 0.8%; }
-.bottom-menu-outfit { left: 20.1%; }
-.bottom-menu-friends { left: 39.4%; }
-.bottom-menu-record { left: 58.7%; }
-.bottom-menu-settings { left: 78.0%; }
+/* 왼쪽은 도감, 오른쪽은 특별 의뢰에 맞춤. 단 마이룸(집)은 아이콘이 캔버스에 꽉 차고
+   설정(톱니)은 안쪽으로 작아, 시각적으로 맞아 보이도록 양 끝을 이미지 여백만큼 보정. */
+.bottom-menu-myroom { left: 5.5%; }
+.bottom-menu-outfit { left: 24.0%; }
+.bottom-menu-friends { left: 42.5%; }
+.bottom-menu-record { left: 61.0%; }
+.bottom-menu-settings { left: 79.5%; }
 
 .bottom-menu-btn img {
   width: 100%;
@@ -1273,6 +1275,19 @@ body.play-view .play-screen {
   filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.5));
   pointer-events: none;
   z-index: 2;
+}
+
+/* 루나 흔들림 메쉬 오버레이 — game-luna-mesh.js 가 활성 루나 이미지 옆에 동적으로 붙임.
+   위치/크기/변형은 매 프레임 대상 이미지에서 복사한다. 기본 숨김. */
+.luna-mesh-overlay {
+  position: absolute;
+  pointer-events: none;
+  display: none;
+}
+.luna-mesh-overlay canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 .play-luna.is-hit {
