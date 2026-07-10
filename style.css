@@ -688,20 +688,9 @@ body.play-view .request-screen {
   background: transparent;
 }
 
-/* 어두운 배경 오버레이 — .screen(레터박스) 안이 아니라 뷰포트 전체를 덮어
-   어떤 화면 크기(예: 375x667)에서도 오버레이가 잘리지 않음. 의뢰 화면 콘텐츠(z12) 아래. */
-body.request-view::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 11;
-  background:
-    linear-gradient(180deg, rgba(13, 10, 30, 0.9) 0%, rgba(24, 18, 48, 0.8) 45%, rgba(9, 7, 22, 0.94) 100%),
-    url("image/background_clean_generated_ext.png") center / cover no-repeat,
-    #14112f;
-  pointer-events: none;
-}
-
+/* (오버레이 제거) 의뢰 화면은 메인 화면 비율(.screen, 세로 390:844)로 고정 —
+   뷰포트 전체를 덮던 body.request-view::before 오버레이를 제거해 PC에서도 메인처럼 세로 고정.
+   콘텐츠(z12) 뒤로는 메인 배경(.bg)이 그대로 보임. */
 body.request-view .request-screen {
   opacity: 1;
   pointer-events: auto;
@@ -1061,16 +1050,6 @@ body.request-view .request-screen {
   display: grid;
   place-items: center;
   opacity: 0;
-  pointer-events: none;
-}
-
-body.request-view::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 11;
-  background:
-    linear-gradient(180deg, rgba(20, 17, 48, 0.86) 0%, rgba(30, 24, 66, 0.68) 40%, rgba(12, 10, 30, 0.92) 100%);
   pointer-events: none;
 }
 
@@ -1752,12 +1731,16 @@ body.play-view .play-screen {
   }
 }
 
+/* 의뢰 화면에서 루나·네로·열기구·태양빛 확실히 숨김.
+   body.started .luna-wrap{opacity:1} 규칙과 특이도가 같아 !important로 확실히 이김.
+   (오버레이 없이도 뒤에 보이지 않도록) */
 body.request-view .balloon,
 body.request-view .luna-wrap,
 body.request-view .nero-wrap,
 body.request-view .sun-glow {
-  opacity: 0;
+  opacity: 0 !important;
   pointer-events: none;
+  transition: opacity 0.2s ease !important;   /* 등장 페이드(1s 지연 1s)가 남지 않도록 */
 }
 
 body.game-ui .logo,
@@ -2052,7 +2035,7 @@ body.result-success .success-screen {
 .success-luna {
   position: absolute;
   left: 3%;
-  bottom: 8%;
+  bottom: 4%;
   height: 92%;
   width: auto;
   object-fit: contain;
@@ -2338,7 +2321,7 @@ body.result-failure .failure-screen {
 .failure-luna {
   position: absolute;
   left: 3%;
-  bottom: 8%;
+  bottom: 4%;
   height: 92%;
   width: auto;
   object-fit: contain;
@@ -2484,6 +2467,205 @@ body.result-failure .failure-screen {
   display: block;
 }
 .failure-btn:active { transform: scale(0.96); }
+
+/* ===================== 스토리 모드(모험하기) 화면 ===================== */
+.story-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 13;
+  opacity: 0;
+  pointer-events: none;
+  overflow: hidden;
+  isolation: isolate;
+  container-type: inline-size;
+  font-family: 'Ridibatang', "Noto Sans KR", "Malgun Gothic", serif;
+  color: #f3e9ff;
+  background:
+    url("image/story_mode_generated/story_mode_background.png") center / cover no-repeat,
+    #14112f;
+}
+body.story-view .story-screen { opacity: 1; pointer-events: auto; }
+/* 스토리 화면일 때 메인 메뉴 요소 숨김 */
+body.story-view .bg,
+body.story-view .sun-glow,
+body.story-view .logo,
+body.story-view .subtitle,
+body.story-view .balloon,
+body.story-view .luna-wrap,
+body.story-view .nero-wrap,
+body.story-view .start-btn,
+body.story-view .touch-hint,
+body.story-view .top-hud,
+body.story-view .left-menu,
+body.story-view .right-menu,
+body.story-view .bottom-menu,
+body.story-view .action-menu {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ---- 스테이지 맵 ---- */
+.story-map { position: absolute; inset: 0; }
+.story-stage {
+  position: absolute;
+  left: var(--sx);
+  top: var(--sy);
+  transform: translate(-50%, -50%);
+  width: 30cqw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.stage-plate { position: relative; width: 100%; z-index: 2; }
+.stage-plate-bg { width: 100%; display: block; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.55)); }
+.stage-no {
+  position: absolute;
+  top: 12%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 2cqw;
+  font-weight: 800;
+  color: #ffe4a3;
+  text-shadow: 0 1px 1px rgba(40, 20, 10, 0.9);
+}
+.stage-title {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 86%;
+  text-align: center;
+  font-size: 2.5cqw;
+  font-weight: 800;
+  color: #fff4de;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(40, 20, 10, 0.85);
+}
+.stage-node { position: relative; width: 52%; margin-top: -18%; z-index: 1; }  /* 이름판·메달 투명 여백만큼 당겨 붙임 */
+.stage-medal { width: 100%; display: block; filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.6)); }
+.stage-stars {
+  position: absolute;
+  bottom: -4%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.8cqw;
+}
+.stage-stars i {
+  width: 3.4cqw;
+  height: 3.4cqw;
+  background: url("image/success/success-star.png") center / contain no-repeat;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6));
+}
+.stage-stars i.is-empty { filter: grayscale(1) brightness(0.45); opacity: 0.65; }
+
+/* 잠긴 스테이지 */
+.story-stage.is-locked .stage-plate-bg { filter: grayscale(0.55) brightness(0.78) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.55)); }
+.story-stage.is-locked .stage-title,
+.story-stage.is-locked .stage-no { color: #cfc6de; }
+.story-stage.is-locked .stage-medal { filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.6)); }
+/* 현재 스테이지 강조 */
+.story-stage.is-current .stage-node {
+  filter: drop-shadow(0 0 7px rgba(190, 130, 255, 0.95));
+  animation: storyCurrentPulse 1.8s ease-in-out infinite;
+}
+@keyframes storyCurrentPulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.07); }
+}
+
+/* ---- 상단바 (뒤로 버튼·재화는 의뢰 화면의 .request-back / .request-currencies 재사용) ---- */
+.story-title {
+  /* 헤더(뒤로 버튼·재화) 아래 가운데 배치 */
+  position: absolute;
+  top: 9.8%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  text-align: center;
+  pointer-events: none;
+}
+.story-title-main {
+  font-size: 7.5cqw;
+  font-weight: 800;
+  color: #f4e6ff;
+  letter-spacing: 1px;
+  white-space: nowrap;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6), 0 0 10px rgba(150, 110, 220, 0.5);
+}
+
+/* ---- 우측 버튼 ---- */
+.story-side {
+  position: absolute;
+  right: 2.5%;
+  top: 21%;
+  display: flex;
+  flex-direction: column;
+  gap: 2.6cqw;
+  z-index: 4;
+}
+.story-side-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 0.6cqw;
+  background: none; border: 0; padding: 0; cursor: pointer;
+  transition: transform 0.1s ease;
+}
+.story-side-btn:active { transform: scale(0.93); }
+.ssb-icon {
+  width: 12cqw; height: 12cqw; display: grid; place-items: center;
+  font-size: 6cqw; border-radius: 50%;
+  background: radial-gradient(circle at 50% 38%, rgba(70, 52, 110, 0.95), rgba(34, 24, 60, 0.95));
+  border: 1.5px solid rgba(210, 186, 255, 0.55);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.18);
+}
+.ssb-label { font-size: 2.3cqw; color: #e6dcff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7); }
+
+/* ---- 챕터 진행 패널 ---- */
+.story-chapter { position: absolute; left: 3%; top: 15.5%; width: 41%; z-index: 4; }
+.story-chapter-bg { width: 100%; display: block; filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.5)); }
+.chapter-label { position: absolute; top: 15%; left: 11%; font-size: 2.2cqw; font-weight: 700; letter-spacing: 1.5px; color: #e8c79c; }
+.chapter-name { position: absolute; top: 27%; left: 11%; font-size: 3.4cqw; font-weight: 800; color: #fff3dc; text-shadow: 0 1px 2px rgba(40, 20, 10, 0.7); }
+.chapter-caret { position: absolute; top: 27%; right: 10%; font-size: 3.5cqw; color: #e8c79c; line-height: 1; }
+.chapter-progress-label { position: absolute; top: 60%; left: 11%; font-size: 2.1cqw; color: #dcc9b3; }
+.chapter-progress-bar {
+  position: absolute; bottom: 20%; left: 11%; width: 58%; height: 5.5%;
+  background: rgba(20, 12, 8, 0.55); border-radius: 10px; overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.4);
+}
+.chapter-progress-fill { height: 100%; background: linear-gradient(180deg, #ffd98a, #e5a94b); border-radius: 10px; }
+.chapter-chest { position: absolute; right: 5%; bottom: 14%; width: 22%; height: auto; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5)); }
+
+/* ---- 다음 챕터 화살표 ---- */
+.story-next-chapter {
+  position: absolute; right: 0.5%; top: 45%; z-index: 4;
+  width: 9cqw; height: 15cqw;
+  display: grid; place-items: center;
+  font-size: 9cqw; line-height: 1; color: #ffe4a3;
+  background: linear-gradient(180deg, rgba(46, 32, 72, 0.9), rgba(28, 20, 50, 0.9));
+  border: 1.5px solid rgba(210, 186, 255, 0.5);
+  border-radius: 12px 6px 6px 12px;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* ---- 하단 탭 ---- */
+.story-bottom-nav {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 5;
+  height: 9%;
+  display: flex;
+  background: linear-gradient(180deg, rgba(28, 20, 50, 0.92), rgba(16, 11, 32, 0.97));
+  border-top: 1.5px solid rgba(190, 160, 240, 0.4);
+}
+.story-nav-btn {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5cqw;
+  background: none; border: 0; cursor: pointer;
+  color: #b6a8d4;
+  transition: transform 0.1s ease;
+}
+.story-nav-btn:active { transform: scale(0.95); }
+.snb-icon { font-size: 4.6cqw; line-height: 1; }
+.snb-label { font-size: 2.3cqw; }
+.story-nav-btn.is-active { color: #ffe4a3; }
+.story-nav-btn.is-active .snb-icon { filter: drop-shadow(0 0 5px rgba(255, 210, 130, 0.8)); }
 
 /* ===================== 결과 화면 등장 연출 (감성적·부드럽게) =====================
    보드·배너·별·보상·버튼이 시차를 두고 부드럽게 등장. 성공은 경쾌, 실패는 더 느리고 차분.

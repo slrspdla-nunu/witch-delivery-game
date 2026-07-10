@@ -34,7 +34,12 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
       if (btn.classList.contains("request-back")) {
-        document.body.classList.remove("request-view");
+        // 의뢰 화면·스토리 화면 공용 뒤로 버튼 (동시에 열리지 않으므로 둘 다 제거)
+        document.body.classList.remove("request-view", "story-view");
+        return;
+      }
+      if (btn.classList.contains("action-menu-adventure")) {
+        document.body.classList.add("story-view");
         return;
       }
       if (btn.classList.contains("request-card")) {

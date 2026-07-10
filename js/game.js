@@ -358,6 +358,23 @@
     pad.addEventListener("lostpointercapture", release);
   }
 
+  // [테스트용] 스킬 버튼 5연타 → 성공 화면, 방패 버튼 5연타 → 실패 화면.
+  // 다른 버튼을 누르면 카운트 초기화. 실제 배포 시 이 블록 삭제.
+  const testCombo = { key: null, count: 0 };
+  function trackTestCombo(which) {
+    if (testCombo.key !== which) {
+      testCombo.key = which;
+      testCombo.count = 0;
+    }
+    testCombo.count += 1;
+    if (testCombo.count >= 5) {
+      testCombo.key = null;
+      testCombo.count = 0;
+      if (which === "skill") showSuccessScreen();
+      else showFailureScreen();
+    }
+  }
+
   function bindSkillButtons() {
     const bindTap = (button, action) => {
       if (!button) return;
@@ -367,8 +384,8 @@
         action();
       });
     };
-    bindTap(els.skill, useDash);
-    bindTap(els.shield, useShield);
+    bindTap(els.skill, () => { trackTestCombo("skill"); useDash(); });
+    bindTap(els.shield, () => { trackTestCombo("shield"); useShield(); });
   }
 
   function openPause() {
