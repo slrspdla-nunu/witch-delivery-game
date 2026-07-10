@@ -445,7 +445,7 @@ body.game-ui .top-hud {
 
 .top-currency {
   position: absolute;
-  top: 3.34%;
+  top: 3.95%;   /* 레벨 바 하단과 재화/보석 버튼 하단 정렬 (3.34% → +0.61%) */
   width: 25.93%;
   aspect-ratio: 884 / 279;
   z-index: 1;
@@ -570,16 +570,16 @@ body.play-view .request-screen {
 }
 
 .left-menu-btn { left: 4.21%; }
-.left-menu-broom { top: 15.8%; }
-.left-menu-shop { top: 22.9%; }
-.left-menu-book { top: 30.0%; }
+.left-menu-broom { top: 16.41%; }
+.left-menu-shop { top: 23.51%; }
+.left-menu-book { top: 30.61%; }
 
 .right-menu-btn {
   left: 85.69%;
   width: 9.6%;
 }
-.right-menu-mail { top: 8.6%; }
-.right-menu-event { top: 15.8%; }
+.right-menu-mail { top: 9.21%; }
+.right-menu-event { top: 16.41%; }
 
 .left-menu-frame,
 .left-menu-icon,
@@ -712,7 +712,7 @@ body.request-view .request-screen {
 .request-back {
   position: absolute;
   left: 2.7%;
-  top: 2.45%;
+  top: 2.45%;   /* 재화/보석 버튼과 세로 중심을 맞춰 한 줄에 보이도록 */
   width: 14.4%;
   aspect-ratio: 1;
   filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.52));
@@ -747,7 +747,7 @@ body.request-view .request-screen {
 .request-currencies {
   position: absolute;
   right: 1.45%;
-  top: 3.34%;
+  top: 3.95%;   /* 메인 재화/보석(.top-currency)과 동일 위치로 맞춤 */
   display: flex;
   gap: 1.6%;
   width: 52.7%;
@@ -2520,28 +2520,28 @@ body.story-view .action-menu {
 .stage-plate-bg { width: 100%; display: block; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.55)); }
 .stage-no {
   position: absolute;
-  top: 12%;
+  top: 13%;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 2cqw;
+  font-size: 3cqw;
   font-weight: 800;
   color: #ffe4a3;
   text-shadow: 0 1px 1px rgba(40, 20, 10, 0.9);
 }
 .stage-title {
   position: absolute;
-  top: 40%;
+  top: 45%;
   left: 50%;
   transform: translateX(-50%);
   width: 86%;
   text-align: center;
-  font-size: 2.5cqw;
+  font-size: 2.8cqw;
   font-weight: 800;
   color: #fff4de;
   white-space: nowrap;
   text-shadow: 0 1px 2px rgba(40, 20, 10, 0.85);
 }
-.stage-node { position: relative; width: 52%; margin-top: -18%; z-index: 1; }  /* 이름판·메달 투명 여백만큼 당겨 붙임 */
+.stage-node { position: relative; width: 52%; margin-top: -13%; z-index: 1; }  /* 이름판·메달 투명 여백만큼 당겨 붙임 */
 .stage-medal { width: 100%; display: block; filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.6)); }
 .stage-stars {
   position: absolute;
@@ -2620,19 +2620,19 @@ body.story-view .action-menu {
 .ssb-label { font-size: 2.3cqw; color: #e6dcff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7); }
 
 /* ---- 챕터 진행 패널 ---- */
-.story-chapter { position: absolute; left: 3%; top: 15.5%; width: 41%; z-index: 4; }
+.story-chapter { position: absolute; left: 3%; top: 17%; width: 41%; z-index: 4; }
 .story-chapter-bg { width: 100%; display: block; filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.5)); }
 .chapter-label { position: absolute; top: 15%; left: 11%; font-size: 2.2cqw; font-weight: 700; letter-spacing: 1.5px; color: #e8c79c; }
 .chapter-name { position: absolute; top: 27%; left: 11%; font-size: 3.4cqw; font-weight: 800; color: #fff3dc; text-shadow: 0 1px 2px rgba(40, 20, 10, 0.7); }
 .chapter-caret { position: absolute; top: 27%; right: 10%; font-size: 3.5cqw; color: #e8c79c; line-height: 1; }
 .chapter-progress-label { position: absolute; top: 60%; left: 11%; font-size: 2.1cqw; color: #dcc9b3; }
 .chapter-progress-bar {
-  position: absolute; bottom: 20%; left: 11%; width: 58%; height: 5.5%;
+  position: absolute; bottom: 17%; left: 13%; width: 58%; height: 5.5%;
   background: rgba(20, 12, 8, 0.55); border-radius: 10px; overflow: hidden;
   border: 1px solid rgba(0, 0, 0, 0.4);
 }
 .chapter-progress-fill { height: 100%; background: linear-gradient(180deg, #ffd98a, #e5a94b); border-radius: 10px; }
-.chapter-chest { position: absolute; right: 5%; bottom: 14%; width: 22%; height: auto; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5)); }
+.chapter-chest { position: absolute; right: 10%; bottom: 8%; width: 22%; height: auto; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5)); }
 
 /* ---- 다음 챕터 화살표 ---- */
 .story-next-chapter {

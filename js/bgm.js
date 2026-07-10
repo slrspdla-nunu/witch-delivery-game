@@ -1,6 +1,7 @@
-// 배경 음악 — 화면 진입 시 재생.
-// 브라우저 자동재생 정책상 소리 있는 오디오는 사용자 상호작용 전 차단될 수 있어,
-// 우선 즉시 재생을 시도하고 막히면 첫 클릭/터치/키입력에서 시작한다.
+// 배경 음악 — 첫 사용자 제스처(터치/클릭/키)에서만 재생 시작.
+// 로드 즉시 재생은 하지 않는다: 볼륨 0으로 시작하면 브라우저가 "음소거 자동재생"으로
+// 허용해 터치 전에 몰래 곡이 깔리고, 이후 제스처에서 다시 걸리며 처음부터 재시작되는
+// 문제가 있어서다. 그래서 자동재생 시도 없이 첫 제스처에서 딱 한 번만 재생한다.
 (function () {
   "use strict";
 
@@ -25,38 +26,39 @@
   // "떼는" 계열(pointerup/touchend/click)이 오디오 재생 허가(user activation)를
   // 확실히 부여한다. pointerdown/touchstart 만으로는 재생이 막히는 브라우저가 있어 함께 등록.
   const GESTURES = ["pointerup", "touchend", "click", "keydown", "pointerdown", "touchstart"];
-  let started = false;
+  let started = false;   // 재생 성공 후 true
+  let starting = false;  // play() 진행 중(중복 터치 재생 방지)
 
   function removeGestureListeners() {
     GESTURES.forEach((e) => window.removeEventListener(e, tryStart));
   }
 
   function tryStart() {
-    if (started) return;
+    if (started || starting) return;   // 이미 시작했거나 시작 중이면 무시 → 처음부터 재시작·중복재생 방지
+    starting = true;
     const p = audio.play();
     if (p && typeof p.then === "function") {
       p.then(() => {
         started = true;
+        starting = false;
         removeGestureListeners();
         fadeInVolume(2500);
         console.log("[bgm] 재생 시작");
       }).catch(() => {
-        // 자동재생 차단 — 다음 사용자 제스처를 기다린다 (리스너 유지)
+        // 재생 차단 — 다음 사용자 제스처를 기다린다 (리스너 유지)
+        starting = false;
       });
     } else {
       started = true;
+      starting = false;
       removeGestureListeners();
       fadeInVolume(2500);
     }
   }
 
-  // 첫 상호작용에서 재생되도록 대기 등록 + 로드 시 즉시 시도
+  // 자동재생은 하지 않는다(볼륨 0이라 음소거 자동재생으로 허용돼 터치 전에 몰래 시작되는 문제).
+  // 오직 첫 사용자 제스처에서만 한 번 재생.
   GESTURES.forEach((e) => window.addEventListener(e, tryStart, { passive: true }));
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", tryStart);
-  } else {
-    tryStart();
-  }
 
   // 다른 스크립트에서 제어할 수 있게 노출 (음소거 버튼 등 확장용)
   window.__bgm = audio;

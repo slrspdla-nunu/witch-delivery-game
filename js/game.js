@@ -370,6 +370,12 @@
     if (testCombo.count >= 5) {
       testCombo.key = null;
       testCombo.count = 0;
+      // 실제 결과 흐름처럼 라운드를 먼저 종료해야 게임 루프/BGM이 엉키지 않음.
+      state.running = false;
+      state.paused = false;
+      state.phase = "arrival";
+      clearWorldObjects();
+      fadeGameBgmTo(0.34, 600);   // 결과 화면까지 게임 BGM만 유지 (메뉴곡과 겹치지 않게)
       if (which === "skill") showSuccessScreen();
       else showFailureScreen();
     }
@@ -1072,6 +1078,8 @@
   function leaveSuccessScreen() {
     document.body.classList.remove("result-success", "play-view", "play-landscape-fallback");
     stopGameBgm();
+    state.running = false;   // 좀비 게임 루프 방지 (BGM 겹침 예방)
+    state.paused = false;
     state.phase = "idle";
     if (window.__bgm) { try { window.__bgm.play(); } catch (_) {} }
   }
@@ -1108,6 +1116,8 @@
   function leaveFailureScreen() {
     document.body.classList.remove("result-failure", "play-view", "play-landscape-fallback");
     stopGameBgm();
+    state.running = false;   // 좀비 게임 루프 방지 (BGM 겹침 예방)
+    state.paused = false;
     state.phase = "idle";
     if (window.__bgm) { try { window.__bgm.play(); } catch (_) {} }
   }
