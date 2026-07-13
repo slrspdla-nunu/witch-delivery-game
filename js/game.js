@@ -1463,5 +1463,6 @@
     start,
     setDirection,
     setHorizontalDirection,
+    requestLandscape: requestLandscapeMode,   // 컷신 등 외부에서 가로 모드 요청용
   };
 })();

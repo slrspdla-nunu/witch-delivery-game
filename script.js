@@ -63,6 +63,19 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // 스토리 맵의 스테이지 노드 클릭 → 컷신 재생 (끝나면 배달 게임)
+  document.querySelector(".story-map")?.addEventListener("click", (e) => {
+    const stage = e.target.closest(".story-stage");
+    if (!stage) return;
+    if (stage.classList.contains("is-locked")) {
+      showToast("아직 잠긴 스테이지");
+      return;
+    }
+    document.body.classList.remove("story-view");
+    document.body.classList.add("cutscene-view");
+    window.WitchCutscene?.start("chapter1");
+  });
+
   function showToast(text) {
     let toast = document.getElementById("toast");
     if (!toast) {

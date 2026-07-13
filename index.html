@@ -3,8 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <title>마녀 배달부의 비상착륙</title>
-  <link rel="stylesheet" href="style.css?v=20260710r" />
+  <link rel="stylesheet" href="style.css?v=20260711k" />
   <script src="js/pixi.min.js"></script>
 </head>
 <body>
@@ -545,8 +548,8 @@
         </div>
       </div>
 
-      <!-- 챕터 진행 패널 -->
-      <div class="story-chapter">
+      <!-- 챕터 진행 패널 (표시용, 클릭 동작 없음) -->
+      <div class="story-chapter" aria-label="CHAPTER 1 첫 배달의 시작">
         <img class="story-chapter-bg" src="image/story_mode_generated/chapter_progress_panel_empty.png" alt="" />
         <span class="chapter-label">CHAPTER 1</span>
         <span class="chapter-name">첫 배달의 시작</span>
@@ -554,6 +557,21 @@
         <span class="chapter-progress-label">진행도 6/15</span>
         <div class="chapter-progress-bar"><div class="chapter-progress-fill" style="width:40%;"></div></div>
         <img class="chapter-chest" src="image/story_mode_generated/treasure_chest.png" alt="" />
+      </div>
+    </section>
+
+    <!-- 챕터1 컷신(비주얼 노벨) 화면 -->
+    <section class="cutscene-screen" aria-label="스토리 컷신">
+      <img class="cutscene-art" src="image/story_mode_generated/cutscene_1.png" alt="" aria-hidden="true" />
+      <button class="cutscene-skip" type="button" data-cutscene-skip aria-label="건너뛰기">건너뛰기 ▸▸</button>
+      <div class="cutscene-dialogue">
+        <img class="cutscene-bar" src="image/story_mode_generated/story_dialogue_frame_empty_v3.png" alt="" aria-hidden="true" />
+        <div class="cutscene-portrait" aria-hidden="true">
+          <img class="cutscene-portrait-img" src="image/story_mode_generated/story_luna_smile.png" alt="" />
+        </div>
+        <span class="cutscene-name"></span>
+        <p class="cutscene-text"></p>
+        <span class="cutscene-next" aria-hidden="true">▸</span>
       </div>
     </section>
 
@@ -577,12 +595,13 @@
     </section>
   </div>
 
-  <script src="script.js?v=20260710p"></script>
-  <script src="js/game.js?v=20260710p"></script>
-  <script src="js/luna-mesh.js?v=20260710p"></script>
-  <script src="js/nero-mesh.js?v=20260710p"></script>
-  <script src="js/game-luna-mesh.js?v=20260710r"></script>
-  <script src="js/bgm.js?v=20260710p"></script>
-  <script src="js/splash.js?v=20260710p"></script>
+  <script src="script.js?v=20260711k"></script>
+  <script src="js/game.js?v=20260711k"></script>
+  <script src="js/luna-mesh.js?v=20260711k"></script>
+  <script src="js/nero-mesh.js?v=20260711k"></script>
+  <script src="js/game-luna-mesh.js?v=20260711k"></script>
+  <script src="js/bgm.js?v=20260711k"></script>
+  <script src="js/cutscene.js?v=20260711k"></script>
+  <script src="js/splash.js?v=20260711k"></script>
 </body>
 </html>

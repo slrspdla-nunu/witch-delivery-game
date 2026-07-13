@@ -73,6 +73,32 @@ body.play-view .screen {
     transform: rotate(90deg);
     transform-origin: center;
   }
+
+  /* 컷신도 세로폰에서 게임과 동일하게 회전 폴백 */
+  body.cutscene-view {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+  }
+  body.cutscene-view.play-landscape-fallback .screen {
+    aspect-ratio: 16 / 9;
+    width: min(100vh, 100vw * 16 / 9);
+    width: min(100dvh, 100vw * 16 / 9);
+    max-width: none;
+    height: auto;
+    transform: rotate(90deg);
+    transform-origin: center;
+  }
+}
+
+/* 컷신 화면 = 컷 아트 비율(16:9) 그대로 → 아트가 잘리지 않고 전체가 보임 */
+body.cutscene-view .screen {
+  aspect-ratio: 16 / 9;
+  width: min(100vw, 100vh * 16 / 9, 1000px);
+  width: min(100vw, 100dvh * 16 / 9, 1000px);
+  height: auto;
+  overflow: hidden;
+  border-radius: 8px;
 }
 
 /* 배경만 뷰포트 전체를 덮어 꽉 채움 (좁은 .screen 틀을 벗어나 살짝 확대되어 들어감).
@@ -2530,7 +2556,10 @@ body.story-view .action-menu {
   display: flex;
   flex-direction: column;
   align-items: center;
+  cursor: pointer;
 }
+.story-stage.is-locked { cursor: default; }
+.story-stage:not(.is-locked):active { transform: translate(-50%, -50%) scale(0.96); }
 .stage-plate { position: relative; width: 100%; z-index: 2; }
 .stage-plate-bg { width: 100%; display: block; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.55)); }
 .stage-no {
@@ -2635,7 +2664,10 @@ body.story-view .action-menu {
 .ssb-label { font-size: 2.3cqw; color: #e6dcff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7); }
 
 /* ---- 챕터 진행 패널 ---- */
-.story-chapter { position: absolute; left: 3%; top: 17%; width: 41%; z-index: 4; }
+.story-chapter {
+  position: absolute; left: 3%; top: 17%; width: 41%; z-index: 4;
+  pointer-events: none;   /* 표시용 — 클릭 동작 없음 */
+}
 .story-chapter-bg { width: 100%; display: block; filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.5)); }
 .chapter-label { position: absolute; top: 15%; left: 11%; font-size: 2.2cqw; font-weight: 700; letter-spacing: 1.5px; color: #e8c79c; }
 .chapter-name { position: absolute; top: 27%; left: 11%; font-size: 3.4cqw; font-weight: 800; color: #fff3dc; text-shadow: 0 1px 2px rgba(40, 20, 10, 0.7); }
@@ -2820,3 +2852,156 @@ body.pause-view .pause-board {
 @media (hover: hover) {
   .pause-btn:hover { transform: scale(1.03); }
 }
+
+/* ===================== 챕터 컷신(비주얼 노벨) 화면 ===================== */
+.cutscene-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 15;
+  opacity: 0;
+  pointer-events: none;
+  overflow: hidden;
+  isolation: isolate;
+  container-type: size;
+  font-family: 'Ridibatang', "Noto Sans KR", "Malgun Gothic", serif;
+  background: #0a0714;
+  cursor: pointer;   /* 화면 아무 곳이나 탭 → 진행 */
+}
+body.cutscene-view .cutscene-screen { opacity: 1; pointer-events: auto; }
+/* 컷신 중 메뉴·스토리 요소 숨김 */
+body.cutscene-view .bg,
+body.cutscene-view .sun-glow,
+body.cutscene-view .logo,
+body.cutscene-view .subtitle,
+body.cutscene-view .balloon,
+body.cutscene-view .luna-wrap,
+body.cutscene-view .nero-wrap,
+body.cutscene-view .start-btn,
+body.cutscene-view .touch-hint,
+body.cutscene-view .top-hud,
+body.cutscene-view .left-menu,
+body.cutscene-view .right-menu,
+body.cutscene-view .bottom-menu,
+body.cutscene-view .action-menu,
+body.cutscene-view .story-screen {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
+/* 컷 이미지: 16:9 화면을 꽉 채움 */
+.cutscene-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform-origin: center;
+  transform: scale(1);
+  transition: opacity 0.4s ease, transform 0.55s ease;
+  will-change: opacity, transform;
+}
+/* 컷 전환: 살짝 확대되며 페이드아웃 → (교체) → scale 1.05→1.0 + 페이드인 (줌인) */
+.cutscene-art.is-fading { opacity: 0; transform: scale(1.05); }
+
+/* 건너뛰기 버튼 */
+.cutscene-skip {
+  position: absolute;
+  top: 3.5%;
+  right: 3%;
+  z-index: 3;
+  padding: 0.8cqw 1.8cqw;
+  font-family: inherit;
+  font-size: 1.7cqw;
+  font-weight: 700;
+  color: #f0e6ff;
+  background: rgba(24, 16, 44, 0.6);
+  border: 1px solid rgba(210, 186, 255, 0.5);
+  border-radius: 999px;
+  cursor: pointer;
+  backdrop-filter: blur(2px);
+  transition: transform 0.1s ease, background 0.1s ease;
+}
+.cutscene-skip:active { transform: scale(0.95); }
+
+/* 대사 바 — SVG 좌표 그대로 (844×390 기준: x151 y236.5 w542 h137) */
+.cutscene-dialogue {
+  position: absolute;
+  left: 17.9%;            /* 151/844 */
+  right: 17.9%;           /* 844-693 */
+  bottom: 4.2%;
+  aspect-ratio: 542 / 137; /* 폭 기준으로 높이 고정 → 화면 비율(16:9/844:390)이 달라도 바·텍스트 크기 동일 */
+  container-type: size;
+  z-index: 2;
+}
+.cutscene-bar {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;   /* SVG와 동일: 비율 유지하고 위·아래를 잘라 채움 (늘리지 않음) */
+  object-position: center 40%;
+  pointer-events: none;
+}
+/* 초상화 — 이미 금테 포함 완성 초상화. SVG 프레임 위치(x158 y257.5 w96 h107)에 배치 */
+.cutscene-portrait {
+  position: absolute;
+  left: 5.5%;
+  top: 18%;
+  width: 15.6%;   /* 살짝 작게 (기존 17.7%) */
+  height: 69%;    /* 살짝 작게 (기존 78.1%) */
+  z-index: 3;
+}
+.cutscene-portrait-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+/* 화자명 (보라 이름판 위) — 초상화 오른쪽 */
+.cutscene-name {
+  position: absolute;
+  left: 14%;
+  top: 3%;
+  width: 24%;
+  height: 18%;
+  display: grid;
+  place-items: center;
+  font-size: 10cqh;
+  font-weight: 800;
+  color: #f4e6ff;
+  text-shadow: 0 1px 2px rgba(30, 10, 40, 0.9);
+  white-space: nowrap;
+  overflow: hidden;
+}
+/* 대사 텍스트 (양피지, 초상화 오른쪽) */
+.cutscene-text {
+  position: absolute;
+  left: 24%;
+  right: 8%;
+  top: 40%;
+  bottom: 13%;
+  margin: 0;
+  color: #3a2a1e;
+  font-size: 11cqh;
+  font-weight: 700;
+  line-height: 1.38;
+  white-space: pre-wrap;
+  overflow: hidden;
+}
+/* 진행 표시 ▸ */
+.cutscene-next {
+  position: absolute;
+  right: 4%;
+  bottom: 10%;
+  font-size: 12cqh;
+  color: #6a4a2c;
+  animation: cutsceneNextBlink 1s ease-in-out infinite;
+}
+.cutscene-next.is-hidden { opacity: 0; animation: none; }
+@keyframes cutsceneNextBlink {
+  0%, 100% { opacity: 0.25; transform: translateX(0); }
+  50%      { opacity: 1; transform: translateX(2px); }
+}
+/* 나레이션(화자 없음)일 때 초상화·이름판 숨기고, 텍스트를 전체 폭으로 */
+.cutscene-dialogue.is-narration .cutscene-portrait,
+.cutscene-dialogue.is-narration .cutscene-name { opacity: 0; }
+.cutscene-dialogue.is-narration .cutscene-text { left: 9%; top: 32%; }
