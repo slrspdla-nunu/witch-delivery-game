@@ -81,9 +81,9 @@ body.play-view .screen {
     height: 100dvh;
   }
   body.cutscene-view.play-landscape-fallback .screen {
-    aspect-ratio: 16 / 9;
-    width: min(100vh, 100vw * 16 / 9);
-    width: min(100dvh, 100vw * 16 / 9);
+    aspect-ratio: 844 / 390;
+    width: 100vh;
+    width: 100dvh;
     max-width: none;
     height: auto;
     transform: rotate(90deg);
@@ -91,11 +91,11 @@ body.play-view .screen {
   }
 }
 
-/* 컷신 화면 = 컷 아트 비율(16:9) 그대로 → 아트가 잘리지 않고 전체가 보임 */
+/* 컷신 화면 = 게임 가로 화면과 동일한 844:390 (아트는 contain으로 좌우 여백) */
 body.cutscene-view .screen {
-  aspect-ratio: 16 / 9;
-  width: min(100vw, 100vh * 16 / 9, 1000px);
-  width: min(100vw, 100dvh * 16 / 9, 1000px);
+  aspect-ratio: 844 / 390;
+  width: min(100vw, 100vh * 844 / 390, 844px);
+  width: min(100vw, 100dvh * 844 / 390, 844px);
   height: auto;
   overflow: hidden;
   border-radius: 8px;
@@ -2894,8 +2894,9 @@ body.cutscene-view .story-screen {
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  transform-origin: center;
+  object-fit: cover;            /* 폭에 맞춰 화면을 꽉 채움(좌우 여백 없음) */
+  object-position: center top;  /* 상단 정렬 → 넘치는 하단(잔디)이 잘림 */
+  transform-origin: center top;
   transform: scale(1);
   transition: opacity 0.4s ease, transform 0.55s ease;
   will-change: opacity, transform;
@@ -2959,7 +2960,7 @@ body.cutscene-view .story-screen {
 /* 화자명 (보라 이름판 위) — 초상화 오른쪽 */
 .cutscene-name {
   position: absolute;
-  left: 14%;
+  left: 20%;
   top: 3%;
   width: 24%;
   height: 18%;
@@ -2987,15 +2988,21 @@ body.cutscene-view .story-screen {
   white-space: pre-wrap;
   overflow: hidden;
 }
-/* 진행 표시 ▸ */
+/* 진행 표시 "next ▶" (양피지 우하단) */
 .cutscene-next {
   position: absolute;
-  right: 4%;
-  bottom: 10%;
-  font-size: 12cqh;
+  right: 15%;   /* 우하단 깃펜 장식 왼쪽에 배치 */
+  bottom: 13%;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  font-size: 8cqh;
+  font-weight: 700;
+  letter-spacing: 0.5px;
   color: #6a4a2c;
-  animation: cutsceneNextBlink 1s ease-in-out infinite;
+  animation: cutsceneNextBlink 1.1s ease-in-out infinite;
 }
+.cutscene-next b { font-size: 0.85em; font-weight: 900; }
 .cutscene-next.is-hidden { opacity: 0; animation: none; }
 @keyframes cutsceneNextBlink {
   0%, 100% { opacity: 0.25; transform: translateX(0); }
